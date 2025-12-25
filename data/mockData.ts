@@ -51,6 +51,6 @@ export class Users{
 
     //find user data
     findData(id:number){
-        return this.data.find((data)=> data.id === id)?.projectName;
+        return this.data.find((data)=> data.id === id);
     };
 };
