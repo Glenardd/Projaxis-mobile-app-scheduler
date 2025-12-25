@@ -1,5 +1,6 @@
 import { Users } from "@/data/mockData";
 import {
+    Alert,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -27,7 +28,12 @@ export default function Home() {
                     <Pressable
                         key={user_.id}
                         onPress={()=>{
-                            console.log(data_.findData(user_.id));
+                            Alert.alert('Example only',data_.findData(user_.id), [
+                                {
+                                    text: "Exit",
+                                    style: "cancel"
+                                },
+                            ]);
                         }}
                     >
                         <View
