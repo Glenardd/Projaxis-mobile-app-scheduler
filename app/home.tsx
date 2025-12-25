@@ -24,11 +24,21 @@ export default function Home() {
             }}
         >
             {userData.map((user_) => {
+
+                const searchData = data_.findData(user_.id)
+                const id_ = searchData?.id;
+                const projectName_ = searchData?.projectName;
+                const activities_ = searchData?.activties;
+
                 return (
                     <Pressable
                         key={user_.id}
-                        onPress={()=>{
-                            Alert.alert('Example only',data_.findData(user_.id), [
+                        onPress={() => {
+                            Alert.alert('Example only',
+                                `id: ${id_}
+                                \nName: ${projectName_}
+                                \nActivities: ${activities_?.map(activity =>`${JSON.stringify(activity.activityName)}`)}
+                                `, [
                                 {
                                     text: "Exit",
                                     style: "cancel"
