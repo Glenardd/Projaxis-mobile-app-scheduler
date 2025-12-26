@@ -22,7 +22,6 @@ export default function RootLayout() {
             },
           }}
         >
-          {/* home */}
           <Stack.Screen name="home" options={{
             headerShadowVisible: false,//allow drop shadow from the header
             headerTitle: () => (
