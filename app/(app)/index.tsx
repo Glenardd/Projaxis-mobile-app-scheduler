@@ -1,3 +1,4 @@
+import AddProjectButton from "@/components/add-project-button";
 import { Users } from "@/data/mockData";
 import {
     Alert,
@@ -19,10 +20,11 @@ export default function Home() {
                 backgroundColor: "#070C27"
             }}
             contentContainerStyle={{
-                gap: 20,
+                gap: 25,
                 padding: 30
             }}
         >
+            <AddProjectButton />
             {userData.map((user_) => {
 
                 const searchData = data_.findData(user_.id)
