@@ -1,7 +1,7 @@
 import AddProjectButton from "@/components/add-project-button";
-import { Users } from "@/data/mockData";
+import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
 import {
-    Alert,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -10,9 +10,18 @@ import {
 } from "react-native";
 
 export default function Home() {
-    const data_ = new Users();
-    const userData = data_.getData();
-    
+    const [data, setData] = useState<string[]|number[]>([])
+    useEffect(() => {
+        const test = async () => {
+            const { data: projects } = await supabase.from('projects').select();
+            if(projects){
+                setData(projects)
+            }
+        }
+
+        test();
+    }, [])
+
     return (
         // return list
         <ScrollView
@@ -25,27 +34,13 @@ export default function Home() {
             }}
         >
             <AddProjectButton />
-            {userData.map((user_) => {
-
-                const searchData = data_.findData(user_.id)
-                const id_ = searchData?.id;
-                const projectName_ = searchData?.projectName;
-                const activities_ = searchData?.activties;
+            {data.map((projects_: any) => {
 
                 return (
                     <Pressable
-                        key={user_.id}
+                        key={projects_?.id}
                         onPress={() => {
-                            Alert.alert('Example only',
-                                `id: ${id_}
-                                \nName: ${projectName_}
-                                \nActivities: ${activities_?.map(activity =>`${JSON.stringify(activity.activityName)}`)}
-                                `, [
-                                {
-                                    text: "Exit",
-                                    style: "cancel"
-                                },
-                            ]);
+                            console.log(projects_.activity_name)
                         }}
                     >
                         <View
@@ -58,7 +53,7 @@ export default function Home() {
                             }}
                         >
                             <Text style={text.white}>
-                                {user_.projectName}
+                                {projects_.activity_name}
                             </Text>
                         </View>
                     </Pressable>
