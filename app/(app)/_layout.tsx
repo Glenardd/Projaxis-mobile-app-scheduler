@@ -63,7 +63,7 @@ function LogoTitle({ image_url, username}: User) {
             <View style={menu.menuContainer}>
               <View style={{flexDirection: "row", alignItems:"center", gap:10}}>
                 <Image source={{ uri: image_url }} style={{ height: 50, width: 50, borderRadius: 50 }} />
-                <Text style={{fontSize: 14}}>{username}</Text>
+                <Text style={{fontSize: 14, fontWeight: "600"}}>{username}</Text>
               </View>
               <SignOutButton />
             </View>
