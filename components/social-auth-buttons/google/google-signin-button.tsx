@@ -1,7 +1,9 @@
-import { supabase } from '@/lib/supabase'
-import { GoogleSignin, GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin'
-import { useRouter } from 'expo-router'
-import { useEffect } from 'react'
+import { supabase } from '@/lib/supabase';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { Text, TouchableOpacity } from 'react-native';
 
 export default function GoogleLogin() {
   const router = useRouter()
@@ -45,10 +47,29 @@ export default function GoogleLogin() {
   }
 
   return (
-    <GoogleSigninButton
-      size={GoogleSigninButton.Size.Wide}
-      color={GoogleSigninButton.Color.Dark}
+    <TouchableOpacity
       onPress={handleLogin}
-    />
+      style={{
+        borderRadius: 15,
+        borderColor: "#4297E8",
+        borderWidth: 2,
+        overflow: "hidden"
+      }}
+    >
+      <LinearGradient
+        colors={["#63D0FF", "#427CE8", "#235691"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+
+          width: 190,
+          height: 50,
+        }}
+      >
+        <Text style={{ color: "white" }}>Sign in with Google</Text>
+      </LinearGradient >
+    </TouchableOpacity>
   )
 }
