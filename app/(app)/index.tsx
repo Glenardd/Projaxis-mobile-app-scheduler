@@ -1,4 +1,3 @@
-import SignOutButton from "@/components/social-auth-buttons/sign-out-button";
 import { Users } from "@/data/mockData";
 import {
     Alert,
@@ -63,7 +62,6 @@ export default function Home() {
                     </Pressable>
                 )
             })}
-            <SignOutButton />
         </ScrollView>
     )
 }
