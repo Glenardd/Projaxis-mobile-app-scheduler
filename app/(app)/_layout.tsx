@@ -1,20 +1,24 @@
-import { SplashScreenController } from '@/components/splash-screen-controller'
-import { useAuthContext } from '@/hooks/use-auth-context'
-import { Redirect, Stack } from 'expo-router'
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { SplashScreenController } from '@/components/splash-screen-controller';
+import { useAuthContext } from '@/hooks/use-auth-context';
+import { LinearGradient } from "expo-linear-gradient";
+import { Redirect, Stack } from 'expo-router';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 // header contents
 function LogoTitle() {
   return (
     <View style={header.row}>
-      <View style={{
-        width: 55,
-        height: 55,
-        backgroundColor: "#3e7790ff",
-        borderRadius: 10,
-        justifyContent: "center",
-        alignItems: "center",
-      }}>
+      <LinearGradient
+        colors={["#63D0FF", "#427CE8", "#235691"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          width: 55,
+          height: 55,
+          borderRadius: 10,
+          justifyContent: "center",
+          alignItems: "center",
+        }}>
         <Image
           source={require("../../assets/images/projaxis.png")}
           style={{
@@ -23,7 +27,7 @@ function LogoTitle() {
           }}
           resizeMode="contain"
         />
-      </View>
+      </LinearGradient>
       <View style={header.col}>
         <Text style={text.head}>Projaxis</Text>
         <Text style={text.secondHead}>Project Library</Text>
@@ -74,7 +78,6 @@ const header = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
   }
-
 });
 
 //nav-header
