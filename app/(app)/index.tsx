@@ -1,3 +1,4 @@
+import SignOutButton from "@/components/social-auth-buttons/sign-out-button";
 import { Users } from "@/data/mockData";
 import {
     Alert,
@@ -11,7 +12,7 @@ import {
 export default function Home() {
     const data_ = new Users();
     const userData = data_.getData();
-
+    
     return (
         // return list
         <ScrollView
@@ -62,13 +63,14 @@ export default function Home() {
                     </Pressable>
                 )
             })}
+            <SignOutButton />
         </ScrollView>
-    );
-};
+    )
+}
 
 //text color
 const text = StyleSheet.create({
     white: {
         color: "white"
     }
-});
+})
