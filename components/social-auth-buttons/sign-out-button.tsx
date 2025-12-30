@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import React from 'react'
 import { Text, TouchableOpacity } from 'react-native'
@@ -19,17 +20,22 @@ export default function SignOutButton() {
 
   return (
     <TouchableOpacity
-      style={{
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#ea4d4dff",
-        width: 110,
-        height: 50,
-        borderRadius: 45,
-      }}
       onPress={onSignOutButtonPress}
     >
-      <Text style={{ color: "white", fontSize:15 }}>Sign out</Text>
-    </TouchableOpacity>
+      <LinearGradient
+        colors={["#ff613eff", "#ea4d4dff"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          width: 120,
+          height: 50,
+          borderRadius: 25,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ color: "white", fontSize: 15, fontWeight: "600" }}>Sign out</Text>
+      </LinearGradient>
+    </TouchableOpacity >
   )
 }
