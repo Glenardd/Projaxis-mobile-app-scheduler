@@ -68,7 +68,7 @@ export default function GoogleLogin() {
           height: 50,
         }}
       >
-        <Text style={{ color: "white" }}>Sign in with Google</Text>
+        <Text style={{ color: "white", fontSize: 16 }}>Sign in with Google</Text>
       </LinearGradient >
     </TouchableOpacity>
   )
