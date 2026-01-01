@@ -1,26 +1,48 @@
 import AddProjectButton from "@/components/add-project-button";
+import { useOnRefreshByUser } from "@/hooks/useOnRefreshByUser";
+import { useRefreshOnFocus } from "@/hooks/useRefreshOnFocus";
 import { supabase } from "@/lib/supabase";
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from "react";
 import {
     Pressable,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
-    View
+    View,
 } from "react-native";
 
 export default function Home() {
-    const [data, setData] = useState<string[]|number[]>([])
+    
+    const [data, setData] = useState<string[] | number[]>([])
+
+    const fetchProjects = async () => {
+        const { data: projects } = await supabase.from('projects').select()
+        return projects
+    }
+
+    const { data: projects, isFetching, dataUpdatedAt, refetch, isPending } = useQuery({
+        queryKey: ['projects'],
+        queryFn:fetchProjects ,
+        staleTime: 1000 * 60 * 5,
+    })
+
+    const { isRefetchingByUser, refetchByUser } = useOnRefreshByUser(refetch)
+    useRefreshOnFocus(refetch)
+
     useEffect(() => {
-        const test = async () => {
-            const { data: projects } = await supabase.from('projects').select();
-            if(projects){
-                setData(projects)
-            }
+        if (projects && projects.length !== 0) {
+            setData(projects)
+            // console.log("Project data: ",projects)
         }
 
-        test();
-    }, [])
+        if (isFetching) console.log('🔄 fetching data!')
+        if(isPending) console.log("LOADING")
+
+    }, [isFetching, isPending])
+
+    if(!projects) return null
 
     return (
         // return list
@@ -32,6 +54,9 @@ export default function Home() {
                 gap: 25,
                 padding: 30
             }}
+            refreshControl={
+                <RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser}/>
+            }
         >
             <AddProjectButton />
             {data.map((projects_: any) => {
