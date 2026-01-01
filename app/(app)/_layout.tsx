@@ -19,7 +19,7 @@ interface User {
   username: string
 }
 // header contents
-function LogoTitle({ image_url, username}: User) {
+function LogoTitle({ image_url, username }: User) {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -61,9 +61,9 @@ function LogoTitle({ image_url, username}: User) {
             onPress={() => setModalVisible(false)}
           >
             <View style={menu.menuContainer}>
-              <View style={{flexDirection: "row", alignItems:"center", gap:10}}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <Image source={{ uri: image_url }} style={{ height: 50, width: 50, borderRadius: 50 }} />
-                <Text style={{fontSize: 14, fontWeight: "600"}}>{username}</Text>
+                <Text style={{ fontSize: 14, fontWeight: "600" }}>{username}</Text>
               </View>
               <SignOutButton />
             </View>
@@ -76,6 +76,17 @@ function LogoTitle({ image_url, username}: User) {
         <Image source={{ uri: image_url }} style={{ height: 50, width: 50, borderRadius: 50 }} />
       </TouchableOpacity>
     </View >
+  )
+}
+
+function FormsTitle() {
+  return (
+    <View>
+      <View style={header_two.container}>
+        <Text style={text.head}>Add Activity</Text>
+        <Text style={text.secondHead}>Add new activity to the current project</Text>
+      </View>
+    </View>
   )
 }
 
@@ -94,10 +105,10 @@ export default function HomeLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
+    <Stack>
+      <Stack.Screen name="index" options={{
         headerShown: true,
-        headerTitle: () => <LogoTitle image_url={avatar_url} username={username}/>,
+        headerTitle: () => <LogoTitle image_url={avatar_url} username={username} />,
         headerStyle: {
           backgroundColor: "#070C27"
         },
@@ -105,8 +116,19 @@ export default function HomeLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-      }}
-    />
+      }} />
+      <Stack.Screen name="forms/index" options={{
+        headerShown: true,
+        headerTitle: () => <FormsTitle />,
+        headerStyle: {
+          backgroundColor: "#070C27"
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }} />
+    </Stack>
   )
 }
 
@@ -129,6 +151,14 @@ const header = StyleSheet.create({
     alignItems: "center",
   }
 });
+
+const header_two = StyleSheet.create({
+  container: {
+    paddingBottom: 15,
+    paddingHorizontal: 15
+  },
+
+})
 
 //nav-header
 const text = StyleSheet.create({
