@@ -8,7 +8,7 @@ export default function SignOutButton() {
   const router = useRouter()
 
   const onSignOutButtonPress = async () => {
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut({scope: "local"})
 
     if (error) {
       console.error('Error signing out:', error)

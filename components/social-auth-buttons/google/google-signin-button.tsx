@@ -12,12 +12,14 @@ export default function GoogleLogin() {
     GoogleSignin.configure({
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_AUTH_WEB_CLIENT_ID,
       offlineAccess: true,
+      
       // forceCodeForRefreshToken:true,
     })
   }, [])
 
   const handleLogin = async () => {
     try {
+      await GoogleSignin.signOut()
       await GoogleSignin.hasPlayServices()
       const response = await GoogleSignin.signIn()
 
