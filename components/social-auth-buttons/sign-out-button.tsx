@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import React from 'react'
@@ -6,6 +7,7 @@ import { Text, TouchableOpacity } from 'react-native'
 
 export default function SignOutButton() {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const onSignOutButtonPress = async () => {
     const { error } = await supabase.auth.signOut({scope: "local"})
@@ -14,6 +16,8 @@ export default function SignOutButton() {
       console.error('Error signing out:', error)
       return
     }
+    
+    queryClient.clear()
 
     router.replace('/')
   }
