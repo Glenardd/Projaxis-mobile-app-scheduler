@@ -1,9 +1,11 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
 export default function AddProjectButton() {
     return (
         <TouchableOpacity
+            onPress={()=> router.push("/(app)/forms")}
             style={{
                 borderColor: "#306C86",
                 borderWidth: 1,
