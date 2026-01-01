@@ -12,12 +12,14 @@ export default function GoogleLogin() {
     GoogleSignin.configure({
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_AUTH_WEB_CLIENT_ID,
       offlineAccess: true,
+      
       // forceCodeForRefreshToken:true,
     })
   }, [])
 
   const handleLogin = async () => {
     try {
+      await GoogleSignin.signOut()
       await GoogleSignin.hasPlayServices()
       const response = await GoogleSignin.signIn()
 
@@ -68,7 +70,7 @@ export default function GoogleLogin() {
           height: 50,
         }}
       >
-        <Text style={{ color: "white" }}>Sign in with Google</Text>
+        <Text style={{ color: "white", fontSize: 16 }}>Sign in with Google</Text>
       </LinearGradient >
     </TouchableOpacity>
   )

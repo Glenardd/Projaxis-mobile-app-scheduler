@@ -1,18 +1,49 @@
-import SignOutButton from "@/components/social-auth-buttons/sign-out-button";
-import { Users } from "@/data/mockData";
+import AddProjectButton from "@/components/add-project-button";
+import { useOnRefreshByUser } from "@/hooks/useOnRefreshByUser";
+import { useRefreshOnFocus } from "@/hooks/useRefreshOnFocus";
+import { supabase } from "@/lib/supabase";
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from "react";
 import {
-    Alert,
     Pressable,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
-    View
+    View,
 } from "react-native";
 
 export default function Home() {
-    const data_ = new Users();
-    const userData = data_.getData();
     
+    const [data, setData] = useState<string[] | number[]>([])
+
+    const fetchProjects = async () => {
+        const { data: projects } = await supabase.from('projects').select()
+        return projects
+    }
+
+    const { data: projects, isFetching, dataUpdatedAt, refetch, isPending } = useQuery({
+        queryKey: ['projects'],
+        queryFn:fetchProjects ,
+        staleTime: 1000 * 60 * 5,
+    })
+
+    const { isRefetchingByUser, refetchByUser } = useOnRefreshByUser(refetch)
+    useRefreshOnFocus(refetch)
+
+    useEffect(() => {
+        if (projects && projects.length !== 0) {
+            setData(projects)
+            // console.log("Project data: ",projects)
+        }
+
+        if (isFetching) console.log('🔄 fetching data!')
+        if(isPending) console.log("LOADING")
+
+    }, [isFetching, isPending])
+
+    if(!projects) return null
+
     return (
         // return list
         <ScrollView
@@ -20,31 +51,21 @@ export default function Home() {
                 backgroundColor: "#070C27"
             }}
             contentContainerStyle={{
-                gap: 20,
+                gap: 25,
                 padding: 30
             }}
+            refreshControl={
+                <RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser}/>
+            }
         >
-            {userData.map((user_) => {
-
-                const searchData = data_.findData(user_.id)
-                const id_ = searchData?.id;
-                const projectName_ = searchData?.projectName;
-                const activities_ = searchData?.activties;
+            <AddProjectButton />
+            {data.map((projects_: any) => {
 
                 return (
                     <Pressable
-                        key={user_.id}
+                        key={projects_?.id}
                         onPress={() => {
-                            Alert.alert('Example only',
-                                `id: ${id_}
-                                \nName: ${projectName_}
-                                \nActivities: ${activities_?.map(activity =>`${JSON.stringify(activity.activityName)}`)}
-                                `, [
-                                {
-                                    text: "Exit",
-                                    style: "cancel"
-                                },
-                            ]);
+                            console.log(projects_.activity_name)
                         }}
                     >
                         <View
@@ -57,13 +78,12 @@ export default function Home() {
                             }}
                         >
                             <Text style={text.white}>
-                                {user_.projectName}
+                                {projects_.activity_name}
                             </Text>
                         </View>
                     </Pressable>
                 )
             })}
-            <SignOutButton />
         </ScrollView>
     )
 }
