@@ -65,7 +65,7 @@ export default function Home() {
                     <Pressable
                         key={projects_?.id}
                         onPress={() => {
-                            console.log(projects_.activity_name)
+                            console.log(projects_.project_name)
                         }}
                     >
                         <View
@@ -78,7 +78,7 @@ export default function Home() {
                             }}
                         >
                             <Text style={text.white}>
-                                {projects_.activity_name}
+                                {projects_.project_name}
                             </Text>
                         </View>
                     </Pressable>
