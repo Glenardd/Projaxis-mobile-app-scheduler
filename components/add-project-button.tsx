@@ -114,6 +114,7 @@ export default function AddProjectButton() {
                     // router.push("/(app)/forms"
                     setModalVisible(true)
                     setProjectName("") // clear input
+                    setInputEmpty(false)// clear warning
                 }}
                 style={{
                     borderColor: "#306C86",
@@ -179,6 +180,7 @@ const menu = StyleSheet.create({
         justifyContent: "center",
         flexDirection: "row",
         borderWidth: 1,
+        borderColor:"#625B71"
     }
 })
 
