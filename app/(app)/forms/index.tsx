@@ -94,12 +94,12 @@ export default function Forms() {
                     style={styles.input}
                     placeholderTextColor="#575884"
                 />
-                <Text style={{ color: "#AEB7DA" }}>Optimistic Time/s</Text>
+                <Text style={{ color: "#AEB7DA" }}>Optimistic Time</Text>
                 <TextInput
                     keyboardType="numeric"
                     onChangeText={setOptimistic}
                     value={optimistic}
-                    placeholder="Time"
+                    placeholder="Time in days"
                     style={styles.input}
                     placeholderTextColor="#575884"
                 />
@@ -108,7 +108,7 @@ export default function Forms() {
                     keyboardType="numeric"
                     onChangeText={setMostLikey}
                     value={mostLikely}
-                    placeholder="Time"
+                    placeholder="Time in days"
                     style={styles.input}
                     placeholderTextColor="#575884"
                 />
@@ -116,7 +116,7 @@ export default function Forms() {
                 <TextInput
                     onChangeText={setPessimistic}
                     value={pessimistic}
-                    placeholder="Time"
+                    placeholder="Time in days"
                     style={styles.input}
                     placeholderTextColor="#575884"
                 />
