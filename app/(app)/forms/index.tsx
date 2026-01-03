@@ -122,7 +122,11 @@ export default function Forms() {
                 />
                 <View style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 20 }}>
                     <View style={{ minWidth: Dimensions.get("screen").width / 2.5 }}>
-                        <Button title="Add" onPress={() => addNewProject()} />
+                        <Button title="Add" onPress={() => {
+                            addNewProject()
+                            navigation.goBack()
+                        }}
+                        />
                     </View>
                     <View style={{ minWidth: Dimensions.get("screen").width / 2.5 }}>
                         <Button title="Cancel" onPress={() => navigation.goBack()} />
