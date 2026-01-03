@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { useNavigation } from "@react-navigation/native";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button, Dimensions, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -8,7 +9,6 @@ export default function Forms() {
     const [optimistic, setOptimistic] = useState("");
     const [mostLikely, setMostLikey] = useState("");
     const [pessimistic, setPessimistic] = useState("");
-
 
     const addNewProject = async () => {
         const {
@@ -34,8 +34,14 @@ export default function Forms() {
         }
 
         console.log('Inserted project:', projects);
-        // Here you can mutate your state or React Query cache
     };
+
+    const { mutate: addProject, isPending } = useMutation({
+        mutationFn: addNewProject,
+        onSuccess: () => {
+            useQueryClient().invalidateQueries({ queryKey: ["projects"] })
+        }
+    })
 
     // const [isFocus, setIsFocus] = useState(false);
 
@@ -123,7 +129,7 @@ export default function Forms() {
                 <View style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 20 }}>
                     <View style={{ minWidth: Dimensions.get("screen").width / 2.5 }}>
                         <Button title="Add" onPress={() => {
-                            addNewProject()
+                            addProject()
                             navigation.goBack()
                         }}
                         />
