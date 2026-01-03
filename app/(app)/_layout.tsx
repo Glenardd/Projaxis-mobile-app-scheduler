@@ -1,8 +1,10 @@
+import ScreenHeader from "@/components/screen-header";
 import SignOutButton from "@/components/social-auth-buttons/sign-out-button";
 import { SplashScreenController } from '@/components/splash-screen-controller';
 import { useAuthContext } from '@/hooks/use-auth-context';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LinearGradient } from "expo-linear-gradient";
-import { Redirect, Stack } from 'expo-router';
+import { Redirect } from 'expo-router';
 import { useState } from 'react';
 import {
   Dimensions,
@@ -13,6 +15,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import Home from ".";
+import Forms from "./forms";
 
 interface User {
   image_url: string
@@ -79,19 +83,9 @@ function LogoTitle({ image_url, username }: User) {
   )
 }
 
-function FormsTitle() {
-  return (
-    <View>
-      <View style={header_two.container}>
-        <Text style={text.head}>Add Activity</Text>
-        <Text style={text.secondHead}>Add new activity to the current project</Text>
-      </View>
-    </View>
-  )
-}
-
 export default function HomeLayout() {
   const { session, isLoading } = useAuthContext()
+  const Stack = createNativeStackNavigator();
 
   const avatar_url = session?.user.user_metadata?.avatar_url
   const username = session?.user.user_metadata?.name
@@ -105,8 +99,8 @@ export default function HomeLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{
+    <Stack.Navigator>
+      <Stack.Screen name="home" component={Home} options={{
         headerShown: true,
         headerTitle: () => <LogoTitle image_url={avatar_url} username={username} />,
         headerStyle: {
@@ -117,9 +111,10 @@ export default function HomeLayout() {
           fontWeight: 'bold',
         },
       }} />
-      <Stack.Screen name="forms/index" options={{
+      <Stack.Screen name="forms/index" component={Forms} options={{
         headerShown: true,
-        headerTitle: () => <FormsTitle />,
+        headerShadowVisible: false,
+        headerTitle: () => <ScreenHeader title="Add Activity" subtitle="Add new activity to the current project"/>,
         headerStyle: {
           backgroundColor: "#070C27"
         },
@@ -127,8 +122,10 @@ export default function HomeLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerLeft: () => null,
+        headerBackVisible:false,
       }} />
-    </Stack>
+    </Stack.Navigator>
   )
 }
 
@@ -152,15 +149,7 @@ const header = StyleSheet.create({
   }
 });
 
-const header_two = StyleSheet.create({
-  container: {
-    paddingBottom: 15,
-    paddingHorizontal: 15
-  },
 
-})
-
-//nav-header
 const text = StyleSheet.create({
   head: {
     fontSize: 30,
