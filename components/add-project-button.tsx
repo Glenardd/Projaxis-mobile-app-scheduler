@@ -8,6 +8,7 @@ export default function AddProjectButton() {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [projectName, setProjectName] = useState("");
+    const [inputEmpty, setInputEmpty] = useState(false);
 
     const queryClient = useQueryClient();
 
@@ -71,18 +72,31 @@ export default function AddProjectButton() {
                             <View style={forms.container}>
                                 <Text style={{ color: "#AEB7DA" }}>Project Name</Text>
                                 <TextInput
-                                    onChangeText={setProjectName}
+
+                                    onChangeText={(text)=>{
+                                        setProjectName(text)
+
+                                        if(text.length > 0){
+                                            setInputEmpty(false)
+                                        }
+                                    }}
                                     value={projectName}
                                     placeholder="Name"
-                                    style={forms.input}
-                                    placeholderTextColor="#575884"
+                                    style={[forms.input,{borderColor: inputEmpty ? "red" : "#427CE8",borderWidth:1   }]}
+                                    placeholderTextColor={inputEmpty ? "red" : "#575884"}
                                 />
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 10 }}>
                                     <View style={{ minWidth: Dimensions.get("screen").width / 4.5 }}>
                                         <Button title="Add" onPress={() => {
+                                            if (!projectName.trim()) { // check for empty or just spaces
+                                                setInputEmpty(true)
+                                                return;
+                                            }
+
                                             addProject()
                                             setModalVisible(false)
-                                        }}
+                                        }
+                                        }
                                         />
                                     </View>
                                     <View style={{ minWidth: Dimensions.get("screen").width / 4.5 }}>
@@ -165,7 +179,6 @@ const menu = StyleSheet.create({
         justifyContent: "center",
         flexDirection: "row",
         borderWidth: 1,
-        borderColor: "#427CE8"
     }
 })
 
@@ -180,6 +193,6 @@ const forms = StyleSheet.create({
         padding: 10,
         maxWidth: 360,
         backgroundColor: "#252A4A",
-        borderRadius: 10
+        borderRadius: 10,
     },
 });
