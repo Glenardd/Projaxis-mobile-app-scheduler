@@ -55,7 +55,12 @@ export default function AddProjectButton() {
                 }}
                 transparent
             >
-                <TouchableOpacity onPress={() => setModalVisible(false)} style={menu.overlay}>
+                <TouchableOpacity
+                    onPress={() => {
+                        setModalVisible(false)
+                    }}
+                    style={menu.overlay}
+                >
                     <View style={menu.menuContainer}>
                         <View
                             style={{
@@ -94,6 +99,7 @@ export default function AddProjectButton() {
                 onPress={() => {
                     // router.push("/(app)/forms"
                     setModalVisible(true)
+                    setProjectName("") // clear input
                 }}
                 style={{
                     borderColor: "#306C86",
