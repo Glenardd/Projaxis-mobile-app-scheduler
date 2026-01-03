@@ -6,9 +6,8 @@ import { Button, Dimensions, StyleSheet, Text, TextInput, View } from "react-nat
 
 export default function Forms() {
     const [projectName, setProjectName] = useState("");
-    const [optimistic, setOptimistic] = useState("");
-    const [mostLikely, setMostLikey] = useState("");
-    const [pessimistic, setPessimistic] = useState("");
+
+    const navigation = useNavigation();
 
     const addNewProject = async () => {
         const {
@@ -17,9 +16,6 @@ export default function Forms() {
 
         const data_ = {
             project_name: projectName,
-            optimistic_time: parseInt(optimistic),
-            most_likely_time: parseInt(mostLikely),
-            pessimistic_time: parseInt(pessimistic),
             user_id: user?.id
         }
 
@@ -39,7 +35,8 @@ export default function Forms() {
     const { mutate: addProject, isPending } = useMutation({
         mutationFn: addNewProject,
         onSuccess: () => {
-            useQueryClient().invalidateQueries({ queryKey: ["projects"] })
+            navigation.goBack();
+            useQueryClient().invalidateQueries({ queryKey: ["projects"] });
         }
     })
 
@@ -81,9 +78,6 @@ export default function Forms() {
     //         value: data?.id
     //     }))
     // ]
-
-    const navigation = useNavigation();
-
     return (
         <View
             style={{
@@ -96,33 +90,7 @@ export default function Forms() {
                 <TextInput
                     onChangeText={setProjectName}
                     value={projectName}
-                    placeholder="Activity"
-                    style={styles.input}
-                    placeholderTextColor="#575884"
-                />
-                <Text style={{ color: "#AEB7DA" }}>Optimistic Time</Text>
-                <TextInput
-                    keyboardType="numeric"
-                    onChangeText={setOptimistic}
-                    value={optimistic}
-                    placeholder="Time in days"
-                    style={styles.input}
-                    placeholderTextColor="#575884"
-                />
-                <Text style={{ color: "#AEB7DA" }}>Most Like Time</Text>
-                <TextInput
-                    keyboardType="numeric"
-                    onChangeText={setMostLikey}
-                    value={mostLikely}
-                    placeholder="Time in days"
-                    style={styles.input}
-                    placeholderTextColor="#575884"
-                />
-                <Text style={{ color: "#AEB7DA" }}>Pessimistic Time</Text>
-                <TextInput
-                    onChangeText={setPessimistic}
-                    value={pessimistic}
-                    placeholder="Time in days"
+                    placeholder="Name"
                     style={styles.input}
                     placeholderTextColor="#575884"
                 />
@@ -130,7 +98,6 @@ export default function Forms() {
                     <View style={{ minWidth: Dimensions.get("screen").width / 2.5 }}>
                         <Button title="Add" onPress={() => {
                             addProject()
-                            navigation.goBack()
                         }}
                         />
                     </View>
