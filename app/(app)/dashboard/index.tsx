@@ -1,12 +1,15 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native"
+import { LinearGradient } from "expo-linear-gradient";
+import { FlatList, Image, ImageSourcePropType, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface Item {
     id: number
     title: string
     sub_title: string
+    color: [string, string, string]
+    icon: ImageSourcePropType
 }
 
-// header 
+// dashboard header 
 const scrollHeader = () => {
 
     const styles = StyleSheet.create({
@@ -39,7 +42,7 @@ const scrollHeader = () => {
                 gap: 15,
                 justifyContent: "center",
                 minHeight: 115,
-                marginBottom:10
+                marginBottom: 10
             }}
         >
             <View style={styles.container}>
@@ -58,38 +61,51 @@ const scrollHeader = () => {
     )
 }
 
+// main dashboard content
 export default function DashboardContent() {
 
-    const data = [
+    const data: Item[] = [
         {
             id: 1,
             title: "Create new Task",
-            sub_title: "Input new task"
+            sub_title: "Input new task",
+            color: ["#63D0FF", "#4297E8", "#235691"],
+            icon: require("@/assets/dashboard_icons/task.png")
         },
         {
             id: 2,
             title: "Activity Table",
-            sub_title: "View CPM calculations"
+            sub_title: "View CPM calculations",
+            color: ["#650CFF", "#8C30EF", "#C568CA"],
+            icon: require("@/assets/dashboard_icons/activity_table.png")
         },
         {
             id: 3,
             title: "View Results",
-            sub_title: "Project Summary"
+            sub_title: "Project Summary",
+            color: ["#C568CA", "#EF30A3", "#D32254"],
+            icon: require("@/assets/dashboard_icons/view_results.png")
         },
         {
             id: 4,
             title: "PERT/CPM Diagrams",
-            sub_title: "Network visualizations"
+            sub_title: "Network visualizations",
+            color: ["#EA4F9F", "#F34548", "#C40003"],
+            icon: require("@/assets/dashboard_icons/diagram.png")
         },
         {
             id: 5,
             title: "Presentation Mode",
-            sub_title: "Slide deck view"
+            sub_title: "Slide deck view",
+            color: ["#FF6932", "#D35731", "#EE3333"],
+            icon: require("@/assets/dashboard_icons/presentation.png")
         },
         {
             id: 6,
             title: "Task Completed",
-            sub_title: "View completed task"
+            sub_title: "View completed task",
+            color: ["#1BE37F", "#51BD2A", "#4EA197"],
+            icon: require("@/assets/dashboard_icons/task_completed.png")
         },
     ]
 
@@ -103,9 +119,10 @@ export default function DashboardContent() {
             maxHeight: 199,
             maxWidth: 172,
             minWidth: 172,
-            justifyContent: "center",
+            justifyContent: "space-evenly",
             alignItems: "center",
             gap: 5,
+            padding:15
         },
         text_title: {
             color: "white",
@@ -117,17 +134,31 @@ export default function DashboardContent() {
             fontSize: 12,
             textAlign: "center"
         },
+        icon_container: {
+            padding: 5,
+            borderRadius: 10
+        }
     })
 
     // map the data here
     const navs = ({ item }: { item: Item }) => {
         return (
-            <View style={{height: 215}}>
+            <View style={{ height: 215 }}>
                 <Pressable
                     style={styles.container}
                 >
-                    <Text style={styles.text_title}>{item.title}</Text>
-                    <Text style={styles.text_sub}>{item.sub_title}</Text>
+                    <LinearGradient
+                        colors={item.color}
+                        style={styles.icon_container}
+                        start={{x:0, y:0}}
+                        end={{x:0, y:1}}
+                    >
+                        <Image source={item.icon} style={{ height: 50, width: 50 }} />
+                    </LinearGradient>
+                    <View style={{gap: 5}}>
+                        <Text style={styles.text_title}>{item.title}</Text>
+                        <Text style={styles.text_sub}>{item.sub_title}</Text>
+                    </View>
                 </Pressable>
             </View>
         )
