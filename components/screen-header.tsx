@@ -2,13 +2,13 @@ import { useNavigation } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-type ScreenHeaderProps = {
+interface ScreenHeaderProps{
     title: string
     subtitle?: string
     currentPage?: string
 };
 
-export default function ScreenHeader({ title, subtitle, currentPage }: ScreenHeaderProps) {
+export default function ScreenHeader({ title, subtitle, currentPage } : ScreenHeaderProps) {
     const navigation = useNavigation();
 
     return (
@@ -33,7 +33,10 @@ export default function ScreenHeader({ title, subtitle, currentPage }: ScreenHea
                 </View>
             </TouchableOpacity>
             <View>
-                <Text style={text.head}>{title}</Text>
+                <View style={{flexWrap:"wrap", flexDirection:"row", alignItems:"center", gap: 10}}>
+                    <Text style={text.head}>{title}</Text>
+                    <Image source={require("../assets/images/rename_text.png")} style={{height:28, width:28}}/>
+                </View>
                 <Text style={text.secondHead}>{subtitle}</Text>
             </View>
         </View>
