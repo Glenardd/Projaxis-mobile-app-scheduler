@@ -3,19 +3,27 @@ import { useOnRefreshByUser } from "@/hooks/useOnRefreshByUser";
 import { useRefreshOnFocus } from "@/hooks/useRefreshOnFocus";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
-    View,
+    TouchableOpacity,
+    View
 } from "react-native";
+
+interface ProjectType{
+    project_name: string
+    id:number
+    user_id: string
+}
 
 export default function Home() {
     
-    const [data, setData] = useState<string[] | number[]>([])
+    const [data, setData] = useState<ProjectType[]>([])
+    const router = useRouter()
 
     const fetchProjects = async () => {
         const { data: projects } = await supabase.from('projects').select()
@@ -59,13 +67,16 @@ export default function Home() {
             }
         >
             <AddProjectButton />
-            {data.map((projects_: any) => {
-
+            {data.map((projects_) => {
                 return (
-                    <Pressable
+                    <TouchableOpacity
                         key={projects_?.id}
                         onPress={() => {
-                            console.log(projects_.project_name)
+                            console.log(projects_?.project_name)
+                            router.push({
+                                pathname:"/(app)/dashboard",
+                                params: {project_id: projects_?.project_name}
+                            })
                         }}
                     >
                         <View
@@ -81,7 +92,7 @@ export default function Home() {
                                 {projects_.project_name}
                             </Text>
                         </View>
-                    </Pressable>
+                    </TouchableOpacity>
                 )
             })}
         </ScrollView>
