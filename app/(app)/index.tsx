@@ -76,7 +76,7 @@ export default function Home() {
             refreshControl={
                 <RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />
             }
-            data={projects}
+            data={data}
             renderItem={Item}
             keyExtractor={(item) => item.id.toString()}
             ListHeaderComponent={<AddProjectButton />}
