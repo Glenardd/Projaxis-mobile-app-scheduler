@@ -1,4 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { router, type Href } from "expo-router";
 import { FlatList, Image, ImageSourcePropType, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface Item {
@@ -7,6 +8,7 @@ interface Item {
     sub_title: string
     color: [string, string, string]
     icon: ImageSourcePropType
+    href: Href<any | string>
 }
 
 // dashboard header 
@@ -70,42 +72,48 @@ export default function DashboardContent() {
             title: "Create new Task",
             sub_title: "Input new task",
             color: ["#63D0FF", "#4297E8", "#235691"],
-            icon: require("@/assets/dashboard_icons/task.png")
+            icon: require("@/assets/dashboard_icons/task.png"),
+            href: "/dashboard/task"
         },
         {
             id: 2,
             title: "Activity Table",
             sub_title: "View CPM calculations",
             color: ["#650CFF", "#8C30EF", "#C568CA"],
-            icon: require("@/assets/dashboard_icons/activity_table.png")
+            icon: require("@/assets/dashboard_icons/activity_table.png"),
+            href: "/dashboard/activity-table"
         },
         {
             id: 3,
             title: "View Results",
             sub_title: "Project Summary",
             color: ["#C568CA", "#EF30A3", "#D32254"],
-            icon: require("@/assets/dashboard_icons/view_results.png")
+            icon: require("@/assets/dashboard_icons/view_results.png"),
+            href: "/task"
         },
         {
             id: 4,
             title: "PERT/CPM Diagrams",
             sub_title: "Network visualizations",
             color: ["#EA4F9F", "#F34548", "#C40003"],
-            icon: require("@/assets/dashboard_icons/diagram.png")
+            icon: require("@/assets/dashboard_icons/diagram.png"),
+            href: "/task"
         },
         {
             id: 5,
             title: "Presentation Mode",
             sub_title: "Slide deck view",
             color: ["#FF6932", "#D35731", "#EE3333"],
-            icon: require("@/assets/dashboard_icons/presentation.png")
+            icon: require("@/assets/dashboard_icons/presentation.png"),
+            href: "/task"
         },
         {
             id: 6,
             title: "Task Completed",
             sub_title: "View completed task",
             color: ["#1BE37F", "#51BD2A", "#4EA197"],
-            icon: require("@/assets/dashboard_icons/task_completed.png")
+            icon: require("@/assets/dashboard_icons/task_completed.png"),
+            href: "/task"
         },
     ]
 
@@ -146,6 +154,7 @@ export default function DashboardContent() {
             <View style={{ height: 215 }}>
                 <Pressable
                     style={styles.container}
+                    onPress={()=>router.push(item.href)}
                 >
                     <LinearGradient
                         colors={item.color}
