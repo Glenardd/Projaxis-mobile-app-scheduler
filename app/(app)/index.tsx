@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
     FlatList,
+    RefreshControl,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -72,6 +73,9 @@ export default function Home() {
 
     return (
         <FlatList
+            refreshControl={
+                <RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />
+            }
             data={projects}
             renderItem={Item}
             keyExtractor={(item) => item.id.toString()}
