@@ -12,6 +12,7 @@ export default function AddProjectButton() {
 
     const queryClient = useQueryClient();
 
+    // insert
     const addNewProject = async () => {
         const {
             data: { user },
@@ -35,6 +36,7 @@ export default function AddProjectButton() {
         console.log('Inserted project:', projects);
     };
 
+    // updates the data
     const { mutate: addProject, isPending, isSuccess } = useMutation({
         mutationFn: addNewProject,
     })
@@ -44,7 +46,6 @@ export default function AddProjectButton() {
             queryClient.invalidateQueries({ queryKey: ["projects"] });
         }
     }, [isSuccess]);
-
 
     return (
         <View>
@@ -72,7 +73,6 @@ export default function AddProjectButton() {
                             <View style={forms.container}>
                                 <Text style={{ color: "#AEB7DA" }}>Project Name</Text>
                                 <TextInput
-
                                     onChangeText={(text)=>{
                                         setProjectName(text)
 
@@ -82,7 +82,7 @@ export default function AddProjectButton() {
                                     }}
                                     value={projectName}
                                     placeholder="Name"
-                                    style={[forms.input,{borderColor: inputEmpty ? "red" : "#427CE8",borderWidth:1   }]}
+                                    style={[forms.input,{borderColor: inputEmpty ? "red" : "#625B71",borderWidth:1   }]}
                                     placeholderTextColor={inputEmpty ? "red" : "#575884"}
                                 />
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 10 }}>
@@ -92,8 +92,7 @@ export default function AddProjectButton() {
                                                 setInputEmpty(true)
                                                 return;
                                             }
-
-                                            addProject()
+                                            addProject()// invoke the update
                                             setModalVisible(false)
                                         }
                                         }
