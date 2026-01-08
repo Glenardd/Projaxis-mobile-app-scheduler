@@ -140,7 +140,7 @@ export default function DashboardContent() {
         }
     })
 
-    // map the data here
+    // renders data here
     const navs = ({ item }: { item: Item }) => {
         return (
             <View style={{ height: 215 }}>
