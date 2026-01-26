@@ -2,17 +2,19 @@ import { supabase } from '@/lib/supabase';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 export default function GoogleLogin() {
   const router = useRouter()
+
+  const [isPending, setIsPending] = useState(false)
 
   useEffect(() => {
     GoogleSignin.configure({
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_AUTH_WEB_CLIENT_ID,
       offlineAccess: true,
-      
+
       // forceCodeForRefreshToken:true,
     })
   }, [])
@@ -30,10 +32,11 @@ export default function GoogleLogin() {
 
       if (error) {
         console.log('Supabase login error:', error)
+        setIsPending(false)
         return
       }
 
-      console.log('Logged in user:', data.user)
+      // console.log('Logged in user:', data.user)
 
       // Navigate to home automatically after login
       router.replace("/(app)")
@@ -49,29 +52,35 @@ export default function GoogleLogin() {
   }
 
   return (
-    <TouchableOpacity
-      onPress={handleLogin}
-      style={{
-        borderRadius: 15,
-        borderColor: "#4297E8",
-        borderWidth: 2,
-        overflow: "hidden"
-      }}
-    >
-      <LinearGradient
-        colors={["#63D0FF", "#427CE8", "#235691"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+    <View>
+      <Pressable
+        disabled={isPending}
+        onPress={() => {
+          handleLogin()
+          setIsPending(true)
+        }}
         style={{
-          justifyContent: "center",
-          alignItems: "center",
-
-          width: 190,
-          height: 50,
+          borderRadius: 15,
+          borderColor: "#4297E8",
+          borderWidth: 2,
+          overflow: "hidden"
         }}
       >
-        <Text style={{ color: "white", fontSize: 16 }}>Sign in with Google</Text>
-      </LinearGradient >
-    </TouchableOpacity>
+        <LinearGradient
+          colors={["#63D0FF", "#427CE8", "#235691"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+
+            width: 190,
+            height: 50,
+          }}
+        >
+          <Text style={{ color: "white", fontSize: 16 }}>Sign in with Google</Text>
+        </LinearGradient >
+      </Pressable>
+    </View>
   )
 }
