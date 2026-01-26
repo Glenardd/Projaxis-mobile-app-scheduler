@@ -15,13 +15,6 @@ export default function TaskLayout() {
     }
 
     return (
-        <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen 
-                name="index" 
-                options={{
-                    contentStyle: { backgroundColor: "#070C27" }
-                }}
-            />
-        </Stack>
+        <Stack screenOptions={{ headerShown: false, animation: "none" }} />
     )
 }
