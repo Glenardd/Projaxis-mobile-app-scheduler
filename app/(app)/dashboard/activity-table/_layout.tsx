@@ -19,7 +19,7 @@ export default function TaskLayout() {
             <Stack.Screen 
                 name="index" 
                 options={{
-                    contentStyle: { backgroundColor: "#070C27" }
+                    contentStyle: { backgroundColor: "#070C27" },
                 }}
             />
         </Stack>
