@@ -1,6 +1,7 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import { Dimensions, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import SignOutButton from "./social-auth-buttons/sign-out-button";
 
 interface User {
@@ -31,7 +32,7 @@ export default function LogoTitle({ image_url, username }: User) {
               width: 50,
               height: 50,
             }}
-            resizeMode="contain"
+            contentFit="contain"
           />
         </LinearGradient>
         <View style={header.col}>
@@ -44,9 +45,8 @@ export default function LogoTitle({ image_url, username }: User) {
           animationType="slide"
           onRequestClose={() => setModalVisible(false)}
         >
-          <TouchableOpacity
+          <Pressable
             style={menu.overlay}
-            activeOpacity={1}
             onPress={() => setModalVisible(false)}
           >
             <View style={menu.menuContainer}>
@@ -56,14 +56,14 @@ export default function LogoTitle({ image_url, username }: User) {
               </View>
               <SignOutButton />
             </View>
-          </TouchableOpacity>
+          </Pressable>
         </Modal>
       </View>
-      <TouchableOpacity
+      <Pressable
         onPress={() => setModalVisible(true)}
       >
         <Image source={{ uri: image_url }} style={{ height: 50, width: 50, borderRadius: 50 }} />
-      </TouchableOpacity>
+      </Pressable>
     </View >
   )
 }

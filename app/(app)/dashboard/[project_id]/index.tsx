@@ -1,5 +1,10 @@
+import LoadingIndicator from "@/components/loadingIndicator";
+import { useSearchActivity } from "@/services/activity.service";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { FlatList, Image, ImageSourcePropType, Pressable, StyleSheet, Text, View } from "react-native";
+import { router, useLocalSearchParams, type Href } from "expo-router";
+import { useEffect } from "react";
+import { FlatList, ImageSourcePropType, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 
 interface Item {
     id: number
@@ -7,15 +12,15 @@ interface Item {
     sub_title: string
     color: [string, string, string]
     icon: ImageSourcePropType
+    href: Href<any | string>
 }
 
 // dashboard header 
-const scrollHeader = () => {
-
+const scrollHeader = (numActivities: number) => {
     const styles = StyleSheet.create({
         container: {
             borderWidth: 2,
-            borderColor: "#625B71",
+            borderColor: 'rgba(98,91,113,0.28)',
             borderRadius: 10,
             backgroundColor: "#172038",
             minHeight: 80,
@@ -47,7 +52,7 @@ const scrollHeader = () => {
         >
             <View style={styles.container}>
                 <Text style={styles.text_title}>Activities</Text>
-                <Text style={styles.text_digit}>0</Text>
+                <Text style={styles.text_digit}>{numActivities}</Text>
             </View>
             <View style={styles.container}>
                 <Text style={styles.text_title}>Duration</Text>
@@ -63,6 +68,19 @@ const scrollHeader = () => {
 
 // main dashboard content
 export default function DashboardContent() {
+    // project id
+    const { project_id } = useLocalSearchParams<{ project_id: string }>();
+
+    //for logging
+    useEffect(()=>{
+        if(project_id){
+            console.log("Project Id in dashboard: ",project_id)
+        }
+    },[project_id])
+
+    const { activity, refetchByUser, isRefetchingByUser, isLoading } = useSearchActivity(parseInt(project_id))
+
+    const activityLen = activity?.length ?? 0
 
     const data: Item[] = [
         {
@@ -70,51 +88,57 @@ export default function DashboardContent() {
             title: "Create new Task",
             sub_title: "Input new task",
             color: ["#63D0FF", "#4297E8", "#235691"],
-            icon: require("@/assets/dashboard_icons/task.png")
+            icon: require("@/assets/dashboard_icons/task.png"),
+            href: "/dashboard/task/[project_id]"
         },
         {
             id: 2,
             title: "Activity Table",
             sub_title: "View CPM calculations",
             color: ["#650CFF", "#8C30EF", "#C568CA"],
-            icon: require("@/assets/dashboard_icons/activity_table.png")
+            icon: require("@/assets/dashboard_icons/activity_table.png"),
+            href: "/dashboard/activity-table"
         },
         {
             id: 3,
             title: "View Results",
             sub_title: "Project Summary",
             color: ["#C568CA", "#EF30A3", "#D32254"],
-            icon: require("@/assets/dashboard_icons/view_results.png")
+            icon: require("@/assets/dashboard_icons/view_results.png"),
+            href: "/task"
         },
         {
             id: 4,
             title: "PERT/CPM Diagrams",
             sub_title: "Network visualizations",
             color: ["#EA4F9F", "#F34548", "#C40003"],
-            icon: require("@/assets/dashboard_icons/diagram.png")
+            icon: require("@/assets/dashboard_icons/diagram.png"),
+            href: "/task"
         },
         {
             id: 5,
             title: "Presentation Mode",
             sub_title: "Slide deck view",
             color: ["#FF6932", "#D35731", "#EE3333"],
-            icon: require("@/assets/dashboard_icons/presentation.png")
+            icon: require("@/assets/dashboard_icons/presentation.png"),
+            href: "/task"
         },
         {
             id: 6,
             title: "Task Completed",
             sub_title: "View completed task",
             color: ["#1BE37F", "#51BD2A", "#4EA197"],
-            icon: require("@/assets/dashboard_icons/task_completed.png")
+            icon: require("@/assets/dashboard_icons/task_completed.png"),
+            href: "/task"
         },
     ]
 
     const styles = StyleSheet.create({
         container: {
             borderWidth: 2,
-            borderColor: 'rgba(98,91,113,0.38)',
+            borderColor: 'rgba(98,91,113,0.28)',
             borderRadius: 15,
-            backgroundColor: "rgba(98,91,113,0.38)",
+            backgroundColor: "rgba(98,91,113,0.28)",
             minHeight: 199,
             maxHeight: 199,
             maxWidth: 172,
@@ -122,7 +146,7 @@ export default function DashboardContent() {
             justifyContent: "space-evenly",
             alignItems: "center",
             gap: 5,
-            padding:15
+            padding: 15
         },
         text_title: {
             color: "white",
@@ -140,22 +164,26 @@ export default function DashboardContent() {
         }
     })
 
-    // renders data here
+    // renderer for flatlisst
     const navs = ({ item }: { item: Item }) => {
         return (
             <View style={{ height: 215 }}>
                 <Pressable
                     style={styles.container}
+                    onPress={() => router.push({
+                        pathname: item.href,
+                        params: { project_id: project_id }
+                    })}
                 >
                     <LinearGradient
                         colors={item.color}
                         style={styles.icon_container}
-                        start={{x:0, y:0}}
-                        end={{x:0, y:1}}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 0, y: 1 }}
                     >
                         <Image source={item.icon} style={{ height: 50, width: 50 }} />
                     </LinearGradient>
-                    <View style={{gap: 5}}>
+                    <View style={{ gap: 5 }}>
                         <Text style={styles.text_title}>{item.title}</Text>
                         <Text style={styles.text_sub}>{item.sub_title}</Text>
                     </View>
@@ -164,7 +192,7 @@ export default function DashboardContent() {
         )
     }
 
-    return (
+    return isLoading ? <LoadingIndicator /> : (
         <View
             style={{
                 gap: 15,
@@ -177,10 +205,11 @@ export default function DashboardContent() {
                 data={data}
                 renderItem={navs}
                 keyExtractor={(item) => item.id.toString()}
-                ListHeaderComponent={scrollHeader}
+                ListHeaderComponent={scrollHeader(activityLen || 0)}
                 numColumns={2}
                 columnWrapperStyle={{ gap: 15 }}
                 showsVerticalScrollIndicator={false}
+                refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />}
             />
         </View>
     )

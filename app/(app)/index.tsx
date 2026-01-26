@@ -1,78 +1,57 @@
 import AddProjectButton from "@/components/add-project-button";
-import { useOnRefreshByUser } from "@/hooks/useOnRefreshByUser";
-import { useRefreshOnFocus } from "@/hooks/useRefreshOnFocus";
-import { supabase } from "@/lib/supabase";
-import { useQuery } from '@tanstack/react-query';
+import LoadingIndicator from "@/components/loadingIndicator";
+import { useViewProjects, type ProjectObjectType } from "@/services/projects.service";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
     FlatList,
+    Pressable,
+    RefreshControl,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View
 } from "react-native";
 
-interface ProjectType {
-    id: number
-    created_at: string
-    project_name: string
-    user_id: string
-}
-
 export default function Home() {
 
-    const [data, setData] = useState<ProjectType[]>([])
+    const [data, setData] = useState<ProjectObjectType[]>([])
     const router = useRouter()
-
-    const fetchProjects = async () => {
-        const { data: projects } = await supabase.from('projects').select()
-        return projects
-    }
-
-    const { data: projects, isFetching, dataUpdatedAt, refetch, isPending } = useQuery({
-        queryKey: ['projects'],
-        queryFn: fetchProjects,
-        staleTime: 1000 * 60 * 5,
-    })
-
-    const { isRefetchingByUser, refetchByUser } = useOnRefreshByUser(refetch)
-    useRefreshOnFocus(refetch)
+    const { projects, isLoading, refetchByUser, isRefetchingByUser, isPending } = useViewProjects()
 
     useEffect(() => {
+        // Update local state whenever projects changes
         if (projects && projects.length !== 0) {
             setData(projects)
-            // console.log("Project data: ",projects)
         }
 
-        if (isFetching) console.log('🔄 fetching data!')
-        if (isPending) console.log("LOADING")
-
-    }, [isFetching, isPending])
-
-    if (!projects) return null
+        if (isLoading) console.log('🔄 LOADING PROJECTS!')
+        if (isPending) console.log('🔄 PENDING PROJECT!')
+    }, [projects, isLoading, isPending]) // Add projects here!
 
     //render data here
-    const Item = ({ item }: { item: ProjectType }) => (
+    const Item = ({ item }: { item: ProjectObjectType }) => (
         <View>
-            <TouchableOpacity
+            <Pressable
                 onPress={() => {
                     console.log(item.project_name)
                     router.push({
-                        pathname: "/(app)/dashboard",
-                        params: { project_id: item.project_name }
+                        pathname: "/(app)/dashboard/[project_id]",
+                        params: { project_id: item.id }
                     })
                 }}
                 style={styles.container}
             >
                 <Text style={{ color: "white" }}>{item.project_name}</Text>
-            </TouchableOpacity>
+            </Pressable>
         </View>
     );
 
-    return (
+    return isLoading ? <LoadingIndicator /> : (
         <FlatList
-            data={projects}
+            refreshControl={
+                <RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />
+            }
+            data={data}
             renderItem={Item}
             keyExtractor={(item) => item.id.toString()}
             ListHeaderComponent={<AddProjectButton />}
@@ -82,8 +61,13 @@ export default function Home() {
             }}
             ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
             ListHeaderComponentStyle={{
-                marginBottom:40
+                marginBottom: 40
             }}
+            ListEmptyComponent={
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <Text style={{ color: "#30396cff", fontSize: 15 }}>Empty</Text>
+                </View>
+            }
         />
     )
 }

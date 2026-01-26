@@ -1,8 +1,10 @@
+import Indicator from '@/components/message-indicator';
 import GoogleSignInButton from '@/components/social-auth-buttons/google/google-signin-button';
 import { SplashScreenController } from '@/components/splash-screen-controller';
 import { useAuthContext } from '@/hooks/use-auth-context';
+import { Image } from "expo-image";
 import { Redirect } from 'expo-router';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function Login() {
 
@@ -25,11 +27,12 @@ export default function Login() {
             width: 80,
             height: 80,
           }}
-          resizeMode="contain"
+          contentFit="contain"
         />
         <Text style={styles.title}>Projaxis</Text>
       </View>
       <GoogleSignInButton />
+      <Indicator message='Please wait...' isPending={isLoading}/>
     </View>
   )
 }

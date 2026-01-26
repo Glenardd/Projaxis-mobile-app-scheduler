@@ -1,19 +1,20 @@
+import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
+import { Pressable, StyleSheet, Text, View } from "react-native";
 interface ScreenHeaderProps{
     title: string
-    subtitle?: string
-    currentPage?: string
+    subtitle: string
+    currentPage: string
+    editable: boolean
 };
 
-export default function ScreenHeader({ title, subtitle, currentPage } : ScreenHeaderProps) {
+export default function ScreenHeader({ title, subtitle, currentPage, editable=true} : ScreenHeaderProps) {
     const navigation = useNavigation();
 
     return (
         <View style={header_two.container}>
-            <TouchableOpacity
+            <Pressable
                 onPress={() => navigation.goBack()}
                 style={{
                     paddingRight: 8,
@@ -23,7 +24,7 @@ export default function ScreenHeader({ title, subtitle, currentPage } : ScreenHe
                 }}
             >
                 <View style={{ flexDirection: "row", alignItems:"center" }}>
-                    <Image source={require("../assets/images/chevron_backward.png")} />
+                    <Image style={{ height: 24, width: 24 }} source={require("../assets/images/chevron_backward.png")} />
                     <Text style={{
                         color: "#63D0FF",
                         fontSize: 14,
@@ -31,11 +32,11 @@ export default function ScreenHeader({ title, subtitle, currentPage } : ScreenHe
                         {currentPage}
                     </Text>
                 </View>
-            </TouchableOpacity>
+            </Pressable>
             <View>
                 <View style={{flexWrap:"wrap", flexDirection:"row", alignItems:"center", gap: 10}}>
                     <Text style={text.head}>{title}</Text>
-                    <Image source={require("../assets/images/rename_text.png")} style={{height:28, width:28}}/>
+                    {editable && (<Image source={require("../assets/images/rename_text.png")} style={{height:28, width:28}}/>)}
                 </View>
                 <Text style={text.secondHead}>{subtitle}</Text>
             </View>
