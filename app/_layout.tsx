@@ -29,7 +29,7 @@ export default function RootLayout() {
         <SafeAreaProvider >
           <SafeAreaView style={{ flex: 1, backgroundColor: "#070C27" }}>
             <StatusBar style="light" />
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack screenOptions={{ headerShown: false , animation:"none"}} />
           </SafeAreaView>
         </SafeAreaProvider>
       </QueryClientProvider>
