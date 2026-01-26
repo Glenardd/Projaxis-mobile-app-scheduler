@@ -29,7 +29,8 @@ export default function HomeLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        contentStyle: { backgroundColor: "#070C27" }
+        contentStyle: { backgroundColor: "#070C27" },
+        animation:"none"
       }} />
     </Stack>
   )
