@@ -1,8 +1,9 @@
-import { supabase } from "@/lib/supabase";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInsertProject } from "@/services/projects.service";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
-import { Button, Dimensions, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Button, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import Indicator from "./message-indicator";
 
 export default function AddProjectButton() {
 
@@ -10,42 +11,7 @@ export default function AddProjectButton() {
     const [projectName, setProjectName] = useState("");
     const [inputEmpty, setInputEmpty] = useState(false);
 
-    const queryClient = useQueryClient();
-
-    // insert
-    const addNewProject = async () => {
-        const {
-            data: { user },
-        } = await supabase.auth.getUser(); // user is an object
-
-        const data_ = {
-            project_name: projectName,
-            user_id: user?.id
-        }
-
-        const { data: projects, error } = await supabase
-            .from('projects')
-            .insert([data_]) // wrap in array
-            .select();
-
-        if (error) {
-            console.error('Failed to insert project:', error);
-            return;
-        }
-
-        console.log('Inserted project:', projects);
-    };
-
-    // updates the data
-    const { mutate: addProject, isPending, isSuccess } = useMutation({
-        mutationFn: addNewProject,
-    })
-
-    useEffect(() => {
-        if (isSuccess) {
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
-        }
-    }, [isSuccess]);
+    const { updatedProject, isPending } = useInsertProject()// project mutate 
 
     return (
         <View>
@@ -57,58 +23,59 @@ export default function AddProjectButton() {
                 }}
                 transparent
             >
-                <TouchableOpacity
-                    onPress={() => {
-                        setModalVisible(false)
-                    }}
-                    style={menu.overlay}
-                >
-                    <View style={menu.menuContainer}>
-                        <View
-                            style={{
-                                backgroundColor: "#070C27",
-                                flex: 1
-                            }}
-                        >
-                            <View style={forms.container}>
-                                <Text style={{ color: "#AEB7DA" }}>Project Name</Text>
-                                <TextInput
-                                    onChangeText={(text)=>{
-                                        setProjectName(text)
+                <View style={styles.overlay}>
+                    <Pressable
+                        onPress={() => {
+                            setModalVisible(false)
+                        }}
+                        style={StyleSheet.absoluteFill}
+                    />
+                    <View style={styles.menuContainer}>
+                        <View style={styles.container}>
+                            <Text style={{ color: "#AEB7DA" }}>Project Name</Text>
+                            <TextInput
+                                onChangeText={(text) => {
+                                    setProjectName(text)
 
-                                        if(text.length > 0){
-                                            setInputEmpty(false)
+                                    if (text.length > 0) {
+                                        setInputEmpty(false)
+                                    }
+                                }}
+                                value={projectName}
+                                placeholder="Name"
+                                style={[styles.input, { borderColor: inputEmpty ? "red" : "#625B71", borderWidth: 1 }]}
+                                placeholderTextColor={inputEmpty ? "red" : "#575884"}
+                            />
+                            <View style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 10 }}>
+                                <View style={styles.buttons}>
+                                    <Button title="Add" onPress={() => {
+                                        if (!projectName.trim()) { // check for empty or just spaces
+                                            setInputEmpty(true)
+                                            return;
                                         }
-                                    }}
-                                    value={projectName}
-                                    placeholder="Name"
-                                    style={[forms.input,{borderColor: inputEmpty ? "red" : "#625B71",borderWidth:1   }]}
-                                    placeholderTextColor={inputEmpty ? "red" : "#575884"}
-                                />
-                                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 10 }}>
-                                    <View style={{ minWidth: Dimensions.get("screen").width / 4.5 }}>
-                                        <Button title="Add" onPress={() => {
-                                            if (!projectName.trim()) { // check for empty or just spaces
-                                                setInputEmpty(true)
-                                                return;
+
+                                        updatedProject(projectName, {
+                                            onSuccess: () => {
+                                                setModalVisible(false)
+                                                setProjectName("")
+                                                setInputEmpty(false)
                                             }
-                                            addProject()// invoke the update
-                                            setModalVisible(false)
-                                        }
-                                        }
-                                        />
-                                    </View>
-                                    <View style={{ minWidth: Dimensions.get("screen").width / 4.5 }}>
-                                        <Button title="Cancel" onPress={() => setModalVisible(false)} />
-                                    </View>
-
+                                        }) //invoke to mutate
+                                    }
+                                    }
+                                    />
                                 </View>
+                                <View style={styles.buttons}>
+                                    <Button title="Cancel" onPress={() => setModalVisible(false)} />
+                                </View>
+
                             </View>
                         </View>
                     </View>
-                </TouchableOpacity>
+                </View>
             </Modal>
-            <TouchableOpacity
+            <Indicator message="Saving" isPending={isPending} />
+            <Pressable
                 onPress={() => {
                     // router.push("/(app)/forms"
                     setModalVisible(true)
@@ -150,50 +117,47 @@ export default function AddProjectButton() {
                         </LinearGradient>
                         <View>
                             <Text style={{ color: "white", fontSize: 18 }}>Create New Schedule</Text>
-                            <Text style={{ color: "#AEB7DA", fontSize: 12 }}>Create New Schedule</Text>
+                            <Text style={{ color: "#AEB7DA", fontSize: 12 }}>Create new project</Text>
                         </View>
                     </View>
                 </LinearGradient>
-            </TouchableOpacity >
+            </Pressable>
         </View>
     )
 }
 
-const menu = StyleSheet.create({
+const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        position: "relative",
         backgroundColor: "rgba(0,0,0,0.4)",
         justifyContent: "center", // pushes modal to bottom
         alignItems: "center"
     },
 
     menuContainer: {
-        position: "absolute",
-        maxHeight: 200,
-        minWidth: "80%",
+        minHeight: "auto",
         backgroundColor: "#070C27",
         borderRadius: 20,
         padding: 30,
-        alignItems: "center",
-        justifyContent: "center",
         flexDirection: "row",
         borderWidth: 1,
-        borderColor:"#625B71"
-    }
-})
+        borderColor: "#625B71"
+    },
 
-const forms = StyleSheet.create({
     container: {
-        padding: 30,
+        flexDirection: "column",
         gap: 10
     },
+
     input: {
         color: "#AEB7DA",
         height: 40,
         padding: 10,
-        maxWidth: 360,
+        minWidth: "40%",
         backgroundColor: "#252A4A",
         borderRadius: 10,
     },
-});
+    buttons: {
+        minWidth: "40%"
+    }
+})
