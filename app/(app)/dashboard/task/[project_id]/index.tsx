@@ -33,7 +33,7 @@ export default function TaskSearch() {
             day: "numeric"
         });
 
-        return (
+        return isLoading ? <LoadingIndicator /> : (
             <View style={styles.container}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                     <View style={{ flexDirection: "row", gap: 10, position: "relative" }}>
@@ -119,6 +119,7 @@ export default function TaskSearch() {
                         <Text style={{ color: "#30396cff", fontSize: 15}}>Empty</Text>
                     </View>
                 }
+                style={{width:"100%"}}
             />
         </>
     )

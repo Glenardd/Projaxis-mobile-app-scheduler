@@ -28,7 +28,6 @@ export default function ActivityEditLayout() {
                     fontWeight: 'bold',
                 },
                 headerBackVisible: false,
-                animation: "simple_push"
             }} />
         </Stack>
     )

@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { MultiSelect } from "react-native-element-dropdown";
+import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
     label: string,
@@ -116,11 +117,11 @@ export default function ActivityEditLayout() {
     // ])
 
     return (
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={{paddingVertical:30}} style={styles.container}>
             <View style={styles.column}>
                 <View style={styles.expected_time}>
                     <Text style={styles.label}>Expected Time</Text>
-                    <Text style={{color: "white", fontSize: 50}}>{!expected_time ? 0 : expected_time}d</Text>
+                    <Text style={{color: "white", fontSize: 40}}>{!expected_time ? 0 : expected_time}d</Text>
                 </View>
                 <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Activity Name</Text>
@@ -319,13 +320,14 @@ export default function ActivityEditLayout() {
                 </View>
             </View>
             <Indicator message="Saving" isPending={isPending} />
-        </View>
+        </ScrollView>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        padding: 28,
+        paddingLeft:28,
+        paddingRight:28,
         flex: 1
     },
     savingText: {
@@ -365,7 +367,7 @@ const styles = StyleSheet.create({
     },
     column: {
         flexDirection: "column",
-        gap: 5
+        gap: 3
     },
     row: {
         flexDirection: "row",
