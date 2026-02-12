@@ -1,9 +1,10 @@
 import LoadingIndicator from "@/components/loadingIndicator";
 import { useSearchActivity } from "@/services/activity.service";
+import { criticalPathMethod, type ActivityWithTiming } from "@/utils/cpm";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams, type Href } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { FlatList, ImageSourcePropType, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 
 interface Item {
@@ -16,7 +17,7 @@ interface Item {
 }
 
 // dashboard header 
-const scrollHeader = (numActivities: number) => {
+const scrollHeader = (numActivities: number, duration: number, critical: number) => {
     const styles = StyleSheet.create({
         container: {
             borderWidth: 2,
@@ -56,11 +57,11 @@ const scrollHeader = (numActivities: number) => {
             </View>
             <View style={styles.container}>
                 <Text style={styles.text_title}>Duration</Text>
-                <Text style={styles.text_digit}>0</Text>
+                <Text style={styles.text_digit}>{duration}d</Text>
             </View>
             <View style={styles.container}>
                 <Text style={styles.text_title}>Critical</Text>
-                <Text style={styles.text_digit}>0</Text>
+                <Text style={styles.text_digit}>{critical}</Text>
             </View>
         </View>
     )
@@ -72,15 +73,22 @@ export default function DashboardContent() {
     const { project_id } = useLocalSearchParams<{ project_id: string }>();
 
     //for logging
-    useEffect(()=>{
-        if(project_id){
-            console.log("Project Id in dashboard: ",project_id)
+    useEffect(() => {
+        if (project_id) {
+            console.log("Project Id in dashboard: ", project_id)
         }
-    },[project_id])
+    }, [project_id])
 
     const { activity, refetchByUser, isRefetchingByUser, isLoading } = useSearchActivity(parseInt(project_id))
 
-    const activityLen = activity?.length ?? 0
+    const cpm: ActivityWithTiming[] = useMemo(() => {
+        if (!activity) return [];
+        return criticalPathMethod(activity) || [];
+    }, [activity]);
+
+    const duration = Math.abs(Math.max(...cpm.map(a => a.EF))) !== Infinity ? Math.max(...cpm.map(a => a.EF)) : 0
+    const critical = cpm.filter((a => a.slack === 0)).length !== 0 ? cpm.filter((a => a.slack === 0)).length : 0
+    const totalActivities = cpm.length !== 0 ? cpm.length : 0
 
     const data: Item[] = [
         {
@@ -172,7 +180,7 @@ export default function DashboardContent() {
         return (
             <View style={{ height: 215 }}>
                 <Pressable
-                    style={[styles.container, {opacity: isDisabled ? 0.5: 1}]}
+                    style={[styles.container, { opacity: isDisabled ? 0.5 : 1 }]}
                     onPress={() => router.push({
                         pathname: item.href,
                         params: { project_id: project_id }
@@ -209,7 +217,7 @@ export default function DashboardContent() {
                 data={data}
                 renderItem={navs}
                 keyExtractor={(item) => item.id.toString()}
-                ListHeaderComponent={scrollHeader(activityLen || 0)}
+                ListHeaderComponent={scrollHeader(totalActivities,duration,critical)}
                 numColumns={2}
                 columnWrapperStyle={{ gap: 15 }}
                 showsVerticalScrollIndicator={false}
