@@ -47,12 +47,12 @@ export default function PresentationContent() {
     // slides or content
     const content = [
         <Fragment>
-            <FlowChart data={cpm} isLoading={isLoading} isRefetchingByUser={isRefetchingByUser} refetchByUser={refetchByUser} controllers={false} />
+            <FlowChart data={cpm} isLoading={isLoading} isRefetchingByUser={isRefetchingByUser} refetchByUser={refetchByUser} small={true} />
         </Fragment>,
         <Fragment>
             <Text style={styles.text}>Each node shows the activity duration in days.</Text>
             <View style={styles.flowContainer}>
-                <CriticalPathFlow criticalPath={criticalPath} orientation="vertical" type="informative" />
+                <CriticalPathFlow criticalPath={cpm} orientation="vertical" type="informative" />
             </View>
         </Fragment>,
         <Fragment>
