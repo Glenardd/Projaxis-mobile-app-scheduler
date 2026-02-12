@@ -88,7 +88,7 @@ export default function DashboardContent() {
             title: "Create new Task",
             sub_title: "Input new task",
             color: ["#63D0FF", "#4297E8", "#235691"],
-            icon: require("@/assets/dashboard_icons/task.png"),
+            icon: require("@/assets/images/dashboard_icons/task.png"),
             href: "/dashboard/task/[project_id]"
         },
         {
@@ -96,39 +96,39 @@ export default function DashboardContent() {
             title: "Activity Table",
             sub_title: "View CPM calculations",
             color: ["#650CFF", "#8C30EF", "#C568CA"],
-            icon: require("@/assets/dashboard_icons/activity_table.png"),
-            href: "/dashboard/activity-table"
+            icon: require("@/assets/images/dashboard_icons/activity_table.png"),
+            href: "/dashboard/activity-table/[project_id]"
         },
         {
             id: 3,
             title: "View Results",
             sub_title: "Project Summary",
             color: ["#C568CA", "#EF30A3", "#D32254"],
-            icon: require("@/assets/dashboard_icons/view_results.png"),
-            href: "/task"
+            icon: require("@/assets/images/dashboard_icons/view_results.png"),
+            href: "/dashboard/project-summary/[project_id]"
         },
         {
             id: 4,
             title: "PERT/CPM Diagrams",
             sub_title: "Network visualizations",
             color: ["#EA4F9F", "#F34548", "#C40003"],
-            icon: require("@/assets/dashboard_icons/diagram.png"),
-            href: "/task"
+            icon: require("@/assets/images/dashboard_icons/diagram.png"),
+            href: "/dashboard/diagram/[project_id]"
         },
         {
             id: 5,
             title: "Presentation Mode",
             sub_title: "Slide deck view",
             color: ["#FF6932", "#D35731", "#EE3333"],
-            icon: require("@/assets/dashboard_icons/presentation.png"),
-            href: "/task"
+            icon: require("@/assets/images/dashboard_icons/presentation.png"),
+            href: "/dashboard/presentation-mode/[project_id]"
         },
         {
             id: 6,
             title: "Task Completed",
             sub_title: "View completed task",
             color: ["#1BE37F", "#51BD2A", "#4EA197"],
-            icon: require("@/assets/dashboard_icons/task_completed.png"),
+            icon: require("@/assets/images/dashboard_icons/task_completed.png"),
             href: "/task"
         },
     ]
@@ -166,14 +166,18 @@ export default function DashboardContent() {
 
     // renderer for flatlisst
     const navs = ({ item }: { item: Item }) => {
+
+        const isDisabled = item.id === 6
+
         return (
             <View style={{ height: 215 }}>
                 <Pressable
-                    style={styles.container}
+                    style={[styles.container, {opacity: isDisabled ? 0.5: 1}]}
                     onPress={() => router.push({
                         pathname: item.href,
                         params: { project_id: project_id }
                     })}
+                    disabled={isDisabled}
                 >
                     <LinearGradient
                         colors={item.color}
@@ -201,7 +205,7 @@ export default function DashboardContent() {
                 justifyContent: "center"
             }}
         >
-            <FlatList<Item>
+            <FlatList
                 data={data}
                 renderItem={navs}
                 keyExtractor={(item) => item.id.toString()}
