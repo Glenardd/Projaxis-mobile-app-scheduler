@@ -29,7 +29,7 @@ export default function ActivityMenuDropdown({ id, project_id, activity_id }: { 
                     >
                         <Image
                             style={{ height: 4, width: 20 }}
-                            source={require("../assets/activity_icons/menu.png")}
+                            source={require("../assets/images/activity_icons/menu.png")}
                             contentFit="contain"
                         />
                     </View>
