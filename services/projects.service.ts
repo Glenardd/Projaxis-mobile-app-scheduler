@@ -18,6 +18,10 @@ export interface ProjectObjectType {
     user_id: string,
 }
 
+interface UseProjectByIdReturn {
+    searchProject: ProjectObjectType | undefined
+}
+
 // list of all projects
 const useViewProjects = (): ProjectTableType => {
 
@@ -44,7 +48,7 @@ const useViewProjects = (): ProjectTableType => {
 }
 
 //search project by id
-const useProjectById = (id: number) => {
+const useProjectById = (id: number): UseProjectByIdReturn => {
     const fetchProjects = async (): Promise<ProjectObjectType> => {
         const { data: projects } = await supabase.from('projects').select().eq("id", id).single()
         return projects
