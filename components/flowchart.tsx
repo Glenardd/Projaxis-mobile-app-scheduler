@@ -1,5 +1,7 @@
 import { type ActivityObjectType } from "@/services/activity.service";
 import { type ActivityWithTiming } from "@/utils/cpm";
+import { responsiveImageSize } from "@/utils/reponsiveImageSize";
+import { responsiveFont } from "@/utils/responsiveFontSize";
 import { memo, useMemo } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -9,7 +11,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { G, Line, Rect, Text as SvgText } from "react-native-svg";
 import LoadingIndicator from "./loadingIndicator";
-import Indicator from "./message-indicator";
 
 interface PositionedTask extends ActivityObjectType {
   x: number
@@ -71,13 +72,14 @@ const Node = memo(({ task, data, NODE_W, NODE_H }: NodeProps) => (
   </G>
 ))
 
+
 export default function FlowChart(
   {
     data,
     isLoading,
     isRefetchingByUser,
     background,
-    controllers=true,
+    small = false,
     refetchByUser }:
     {
       data: ActivityWithTiming[],
@@ -85,9 +87,52 @@ export default function FlowChart(
       isRefetchingByUser: boolean,
       refetchByUser: () => void,
       background?: "none" | "#172038" | "black"
-      controllers?: boolean 
+      small?: boolean
     }
 ) {
+
+  const styles = StyleSheet.create({
+    floatingButton: {
+      position: "absolute",
+      top: 15,
+      right: small === true ? responsiveImageSize(10) :30,
+      zIndex: 1,
+      padding: 10,
+      borderRadius: 12,
+      backgroundColor: "#1E3E67",
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.3,
+      elevation: 5
+    },
+    buttonText: {
+      fontSize: small === true ? responsiveFont(10): 15,
+      color: "#fff",
+    },
+    labelText: {
+      fontSize: 15,
+      color: "#fff",
+    },
+    legendContainer: {
+      position: "absolute",
+      flexDirection: "row",
+      top: 10,
+      left: 15,
+      gap: 10
+    },
+    critical: {
+      width: Dimensions.get("screen").width * 0.2 - 50,
+      height: Dimensions.get("screen").height * 0.01 - 4,
+      backgroundColor: '#F24B6F',
+    },
+    nonCritical: {
+      width: Dimensions.get("screen").width * 0.2 - 50,
+      height: Dimensions.get("screen").height * 0.01 - 4,
+      backgroundColor: "#6b7280"
+    }
+  });
 
   /* ----------------------- panning and pinching ---------------------------- */
 
@@ -115,7 +160,6 @@ export default function FlowChart(
   const savedScale = useSharedValue(1)
 
   const panGesture = Gesture.Pan()
-    .enabled(controllers ?? true)
     .onUpdate((e) => {
       positionX.value = offsetX.value + e.translationX
       positionY.value = offsetY.value + e.translationY
@@ -129,7 +173,6 @@ export default function FlowChart(
     })
 
   const pinchGesture = Gesture.Pinch()
-    .enabled(controllers ?? true)
     .onUpdate((e) => {
       scale.value = savedScale.value * e.scale
     })
@@ -299,27 +342,6 @@ export default function FlowChart(
               <Text style={styles.buttonText}>Reset</Text>
             </Pressable>
           </Animated.View>
-
-          {controllers === true && (<Pressable
-            style={styles.refreshButton}
-            onPress={() => {
-              refetchByUser()
-              positionX.value = 0
-              positionY.value = 0
-
-              offsetX.value = 0
-              offsetY.value = 0
-
-              hasMovedX.value = false
-              hasMovedY.value = false
-
-              scale.value = INIT_SCALE
-            }}
-            disabled={isRefetchingByUser}
-          >
-            <Text style={styles.buttonText}>Reload</Text>
-          </Pressable>)}
-          <Indicator message="Refreshing" isPending={isRefetchingByUser} />
         </View>
 
         <GestureDetector gesture={composedGesture}>
@@ -339,60 +361,3 @@ export default function FlowChart(
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  floatingButton: {
-    position: "absolute",
-    top: 15,
-    right: 120,
-    zIndex: 1,
-    padding: 10,
-    borderRadius: 12,
-    backgroundColor: "#1E3E67",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    elevation: 5
-  },
-  refreshButton: {
-    position: "absolute",
-    top: 15,
-    right: 30,  // On the left side
-    padding: 10,
-    borderRadius: 12,
-    backgroundColor: "#1E3E67",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    elevation: 5
-  },
-  buttonText: {
-    fontSize: 15,
-    color: "#fff",
-  },
-  labelText: {
-    fontSize: 15,
-    color: "#fff",
-  },
-  legendContainer: {
-    position: "absolute",
-    flexDirection: "row",
-    top: 10,
-    left: 15,
-    gap: 10
-  },
-  critical: {
-    width: Dimensions.get("screen").width * 0.2 - 50,
-    height: Dimensions.get("screen").height * 0.01 - 4,
-    backgroundColor: '#F24B6F',
-  },
-  nonCritical: {
-    width: Dimensions.get("screen").width * 0.2 - 50,
-    height: Dimensions.get("screen").height * 0.01 - 4,
-    backgroundColor: "#6b7280"
-  }
-});
