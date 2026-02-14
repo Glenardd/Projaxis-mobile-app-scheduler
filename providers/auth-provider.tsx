@@ -11,6 +11,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false)
 
   useEffect(() => {
     const initAuth = async () => {
@@ -31,6 +32,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log("Auth state changed:", { event: _event, session })
       setSession(session)
+      setIsAuthenticating(false)
     })
 
     return () => subscription.unsubscribe()
@@ -64,7 +66,8 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     if (error) console.error("Error signing out:", error)
     setSession(null)
     setProfile(null)
-  };
+    setIsAuthenticating(false)
+  }
 
   return (
     <AuthContext.Provider
@@ -73,6 +76,8 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         isLoading,
         profile,
         isLoggedIn: !!session, // correct check (null = not logged in)
+        setIsAuthenticating,
+        isAuthenticating, // for loading screen boolean
         logout,                // added logout to context value
       }}
     >

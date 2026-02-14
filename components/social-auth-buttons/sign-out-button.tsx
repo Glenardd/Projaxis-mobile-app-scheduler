@@ -1,3 +1,4 @@
+import { useAuthContext } from '@/hooks/use-auth-context'
 import { supabase } from '@/lib/supabase'
 import { useQueryClient } from '@tanstack/react-query'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -9,15 +10,18 @@ export default function SignOutButton() {
   const router = useRouter()
   const queryClient = useQueryClient()
 
+  const { setIsAuthenticating } = useAuthContext()
+
   const onSignOutButtonPress = async () => {
-    const { error } = await supabase.auth.signOut({scope: "local"})
+    const { error } = await supabase.auth.signOut({ scope: "local" })
 
     if (error) {
       console.error('Error signing out:', error)
       return
     }
-    
+
     queryClient.clear()
+    setIsAuthenticating(false)
 
     router.replace('/')
   }

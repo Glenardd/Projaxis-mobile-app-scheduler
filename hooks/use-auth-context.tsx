@@ -5,7 +5,9 @@ export type AuthData = {
   session?: Session | null
   profile?: any | null
   isLoading: boolean
-  isLoggedIn: boolean
+  isLoggedIn: boolean,
+  isAuthenticating: boolean,
+  setIsAuthenticating: (value: boolean) => void,
   logout: () => Promise<void>
 }
 
@@ -14,6 +16,8 @@ export const AuthContext = createContext<AuthData>({
   profile: undefined,
   isLoading: true,
   isLoggedIn: false,
+  isAuthenticating: false,
+  setIsAuthenticating: () => {},
   logout: async () => {},
 })
 
