@@ -2,7 +2,7 @@ import ScreenHeader from "@/components/screen-header";
 import { SplashScreenController } from "@/components/splash-screen-controller";
 import { useAuthContext } from "@/hooks/use-auth-context";
 import { Redirect, Stack } from "expo-router";
-export default function ActivityEditLayout() {
+export default function DiagramLayout() {
 
     const { session, isLoading } = useAuthContext()
 
@@ -15,11 +15,11 @@ export default function ActivityEditLayout() {
     }
 
     return (
-        <Stack screenOptions={{ headerShown: false, animation: "none" }}>
+        <Stack screenOptions={{ headerShown: false}}>
             <Stack.Screen name="index" options={{
                 headerShown: true,
-                contentStyle: { backgroundColor: "#070C27" },
-                headerTitle: () => <ScreenHeader title="Edit Activity" subtitle="Edit Activity" currentPage="Activity Input" editable={false} />,
+                headerShadowVisible: false,
+                headerTitle: () => <ScreenHeader title="PERT/CPM " subtitle="Network diagram of project activities" currentPage="Project Dashboard" editable={false} />,
                 headerStyle: {
                     backgroundColor: "#070C27"
                 },
@@ -27,7 +27,9 @@ export default function ActivityEditLayout() {
                 headerTitleStyle: {
                     fontWeight: 'bold',
                 },
+                headerLeft: () => null,
                 headerBackVisible: false,
+                animation: "simple_push"
             }} />
         </Stack>
     )

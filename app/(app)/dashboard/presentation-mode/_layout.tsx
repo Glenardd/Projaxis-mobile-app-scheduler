@@ -2,7 +2,7 @@ import { SplashScreenController } from "@/components/splash-screen-controller";
 import { useAuthContext } from "@/hooks/use-auth-context";
 import { Redirect, Stack } from "expo-router";
 
-export default function TaskLayout() {
+export default function PresentationLayout() {
 
     const { session, isLoading } = useAuthContext()
 
@@ -15,6 +15,6 @@ export default function TaskLayout() {
     }
 
     return (
-        <Stack screenOptions={{ headerShown: false, animation: "none" }} />
+        <Stack screenOptions={{ headerShown: false , contentStyle:{backgroundColor:"black"}}}/>
     )
 }

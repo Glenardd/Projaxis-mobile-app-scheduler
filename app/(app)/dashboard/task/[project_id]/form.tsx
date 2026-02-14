@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { MultiSelect } from "react-native-element-dropdown";
+import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
     label: string,
@@ -53,6 +54,8 @@ export default function AddTaskContent() {
         );
     };
 
+    const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
+
     useEffect(() => {
         if (!isPending && isSuccess) {
             router.back();
@@ -60,8 +63,12 @@ export default function AddTaskContent() {
     }, [isPending, isSuccess]);
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
             <View style={styles.column}>
+                <View style={styles.expected_time}>
+                    <Text style={styles.label}>Expected Time</Text>
+                    <Text style={{ color: "white", fontSize: 40 }}>{!expected_time ? 0 : expected_time}d</Text>
+                </View>
                 <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Activity Name</Text>
                     <TextInput
@@ -258,14 +265,14 @@ export default function AddTaskContent() {
                     </View>
                 </View>
             </View>
-            <Indicator message="Saving" isPending={isPending}/>
-        </View>
+            <Indicator message="Saving" isPending={isPending} />
+        </ScrollView>
     )
 }
 
 const styles = StyleSheet.create({
-    container:{
-        padding: 28, 
+    container: {
+        padding: 28,
         flex: 1
     },
     savingText: {
@@ -338,5 +345,9 @@ const styles = StyleSheet.create({
     selectedItem: {
         padding: 5,
         borderRadius: 10
+    },
+    expected_time: {
+        justifyContent: "center", alignItems: "center"
+
     }
 })

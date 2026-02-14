@@ -1,47 +1,43 @@
-import { AuthContext } from '@/hooks/use-auth-context'
-import { supabase } from '@/lib/supabase'
-import type { Session } from '@supabase/supabase-js'
-import { PropsWithChildren, useEffect, useState } from 'react'
+import { AuthContext } from '@/hooks/use-auth-context';
+import { supabase } from '@/lib/supabase';
+import type { Session } from '@supabase/supabase-js';
+import * as SplashScreen from 'expo-splash-screen';
+import { PropsWithChildren, useEffect, useState } from 'react';
+
+//prevent auto close splashscreen
+SplashScreen.preventAutoHideAsync()
 
 export default function AuthProvider({ children }: PropsWithChildren) {
-  const [session, setSession] = useState<Session | undefined | null>()
-  const [profile, setProfile] = useState<any>()
+  const [session, setSession] = useState<Session | null>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false)
 
-  // Fetch the session once, and subscribe to auth state changes
   useEffect(() => {
-    const fetchSession = async () => {
+    const initAuth = async () => {
       setIsLoading(true)
 
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession()
-
-      if (error) {
-        console.error('Error fetching session:', error)
-      }
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (error) console.error("Error fetching session:", error)
 
       setSession(session)
       setIsLoading(false)
-    }
 
-    fetchSession()
+      //always hide splash after init, even if session=null
+      await SplashScreen.hideAsync()
+    };
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed:', { event: _event, session })
+    initAuth()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth state changed:", { event: _event, session })
       setSession(session)
+      setIsAuthenticating(false)
     })
 
-    // Cleanup subscription on unmount
-    return () => {
-      subscription.unsubscribe()
-    }
+    return () => subscription.unsubscribe()
   }, [])
 
-  // Fetch the profile when the session changes
   useEffect(() => {
     const fetchProfile = async () => {
       setIsLoading(true)
@@ -64,13 +60,25 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     fetchProfile()
   }, [session])
 
+  // logout function to clear session and profile
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error("Error signing out:", error)
+    setSession(null)
+    setProfile(null)
+    setIsAuthenticating(false)
+  }
+
   return (
     <AuthContext.Provider
       value={{
         session,
         isLoading,
         profile,
-        isLoggedIn: session != undefined,
+        isLoggedIn: !!session, // correct check (null = not logged in)
+        setIsAuthenticating,
+        isAuthenticating, // for loading screen boolean
+        logout,                // added logout to context value
       }}
     >
       {children}

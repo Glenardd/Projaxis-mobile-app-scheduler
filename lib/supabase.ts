@@ -1,29 +1,24 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
+import * as SecureStore from 'expo-secure-store';
 import 'react-native-url-polyfill/auto';
 
-const ExpoWebSecureStoreAdapter = {
-  getItem: (key: string) => {
-    console.debug("getItem", { key })
-    return AsyncStorage.getItem(key)
-  },
-  setItem: (key: string, value: string) => {
-    return AsyncStorage.setItem(key, value)
-  },
-  removeItem: (key: string) => {
-    return AsyncStorage.removeItem(key)
-  },
-};
+const ExpoSecureStoreAdapter = { 
+  getItem: (key: string) => SecureStore.getItemAsync(key), 
+  setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value), 
+  removeItem: (key: string) => SecureStore.deleteItemAsync(key), 
+}
 
-export const supabase = createClient(
-  process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
-  {
-    auth: {
-      storage: ExpoWebSecureStoreAdapter,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!
+
+console.log("Supabase URL:", supabaseUrl);
+console.log("Supabase Key:", supabaseAnonKey ? "Loaded" : "Missing")
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: ExpoSecureStoreAdapter,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
   },
-);
+})

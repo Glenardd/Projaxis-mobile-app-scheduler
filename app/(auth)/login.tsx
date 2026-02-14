@@ -8,7 +8,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 export default function Login() {
 
-  const { session, isLoading } = useAuthContext()
+  const { session, isLoading, isAuthenticating } = useAuthContext()
 
   if (isLoading) {
     return <SplashScreenController />
@@ -32,7 +32,7 @@ export default function Login() {
         <Text style={styles.title}>Projaxis</Text>
       </View>
       <GoogleSignInButton />
-      <Indicator message='Please wait...' isPending={isLoading}/>
+      <Indicator message='Please wait...' isPending={isAuthenticating} />
     </View>
   )
 }

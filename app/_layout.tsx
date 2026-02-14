@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider, focusManager } from "@tanstack/react-
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { AppStateStatus, Platform } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 function onAppStateChange(status: AppStateStatus) {
@@ -28,8 +29,10 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider >
           <SafeAreaView style={{ flex: 1, backgroundColor: "#070C27" }}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
             <StatusBar style="light" />
             <Stack screenOptions={{ headerShown: false , animation:"none"}} />
+            </GestureHandlerRootView>
           </SafeAreaView>
         </SafeAreaProvider>
       </QueryClientProvider>
