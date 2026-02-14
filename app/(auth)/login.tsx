@@ -32,7 +32,7 @@ export default function Login() {
         <Text style={styles.title}>Projaxis</Text>
       </View>
       <GoogleSignInButton />
-      <Indicator message='Please wait...' isPending={isLoading}/>
+      <Indicator message='Please wait...' isPending={isLoading} />
     </View>
   )
 }
