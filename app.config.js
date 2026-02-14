@@ -1,0 +1,65 @@
+module.exports = {
+  expo: {
+    jsEngine: "hermes",
+    name: "projaxis",
+    slug: "projaxis",
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "./assets/images/icon.png",
+    scheme: "projaxis",
+    userInterfaceStyle: "automatic",
+    newArchEnabled: true,
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: "com.anonymous.projaxis"
+    },
+    android: {
+      adaptiveIcon: {
+        backgroundColor: "#E6F4FE",
+        foregroundImage: "./assets/images/android-icon-foreground.png",
+        backgroundImage: "./assets/images/android-icon-background.png",
+        monochromeImage: "./assets/images/android-icon-monochrome.png"
+      },
+      edgeToEdgeEnabled: true,
+      predictiveBackGestureEnabled: false,
+      package: "com.anonymous.projaxis"
+    },
+    web: {
+      output: "static",
+      favicon: "./assets/images/favicon.png"
+    },
+    plugins: [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          image: "./assets/images/splash-icon.png",
+          imageWidth: 200,
+          resizeMode: "contain",
+          backgroundColor: "#070C27",
+          dark: {
+            backgroundColor: "#070C27"
+          }
+        }
+      ],
+      "expo-secure-store",
+      "@react-native-google-signin/google-signin"
+    ],
+    experiments: {
+      typedRoutes: true,
+      reactCompiler: true
+    },
+    extra: {
+      router: {},
+      supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+      supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+      googleAuthWebClientId: process.env.EXPO_PUBLIC_GOOGLE_AUTH_WEB_CLIENT_ID,
+      cronSecret: process.env.CRON_SECRET,
+      googleClientSecret: process.env.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET,
+      nodeEnv: process.env.NODE_ENV,
+      eas: {
+        projectId: "e6d186e1-e734-4927-ba57-88836c4177dc"
+      }
+    }
+  }
+};
