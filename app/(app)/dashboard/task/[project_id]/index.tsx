@@ -60,35 +60,12 @@ export default function TaskSearch() {
                     }}
                 >
                     <View style={styles.box_lg}>
-                        <Text style={styles.labels}>Expected Time</Text>
-                        <Text style={styles.important}>{(item.expected ?? 0) + "d"}</Text>
+                        <Text style={styles.labels}>Time</Text>
+                        <Text style={styles.important}>{(item.time ?? 0) + "d"}</Text>
                     </View>
                     <View style={styles.box_lg}>
                         <Text style={styles.labels}>Predecessor</Text>
                         <Text style={styles.important}>{showPredecessors}</Text>
-                    </View>
-                </View>
-                <View>
-                    <Text style={styles.labels}>{"PERT Estimates (days)"}</Text>
-                </View>
-                <View
-                    style={{
-                        justifyContent: "center",
-                    }}
-                >
-                    <View style={{ flexDirection: "row", justifyContent: "center", alignContent: "center", gap: 10 }}>
-                        <View style={styles.box_sm}>
-                            <Text style={styles.labels}>Optimistic</Text>
-                            <Text style={styles.important}>{item.optimistic}d</Text>
-                        </View>
-                        <View style={styles.box_sm}>
-                            <Text style={styles.labels}>Most Likely</Text>
-                            <Text style={styles.important}>{item.most_likely}d</Text>
-                        </View>
-                        <View style={styles.box_sm}>
-                            <Text style={styles.labels}>Pessimistic</Text>
-                            <Text style={styles.important}>{item.pessimistic}d</Text>
-                        </View>
                     </View>
                 </View>
             </View>

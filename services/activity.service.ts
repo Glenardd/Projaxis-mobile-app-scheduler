@@ -23,13 +23,10 @@ export interface ActivityObjectType {
     id: number
     created_at: Date
     activity_name: string
-    optimistic: number
-    most_likely: number
-    pessimistic: number
+    time: number
     project_id: number | undefined
     predecessor: string[]
     label: string
-    expected: number
 }
 
 //for insert only
@@ -37,10 +34,7 @@ interface InsertPayload {
     activity_name: string
     project_id: number | undefined
     predecessors: string[]
-    optimistic: string
-    mostLikely: string
-    pessimistic: string
-    expected: number
+    time: string
 }
 
 //search the activity by project here
@@ -112,12 +106,9 @@ const useInsertActivity = () => {
 
         const {
             activity_name,
-            optimistic,
-            mostLikely,
-            pessimistic,
+            time,
             project_id,
-            predecessors,
-            expected
+            predecessors
         } = InsertPayload
 
         //get the activity id
@@ -141,13 +132,10 @@ const useInsertActivity = () => {
 
         const payload = {
             activity_name: activity_name,
-            optimistic: parseInt(optimistic),
-            most_likely: parseInt(mostLikely),
-            pessimistic: parseInt(pessimistic),
+            time: parseInt(time),
             project_id: project_id,
             predecessor: predecessorsId,
             label: label[0].label,
-            expected: expected
         }
 
         const { data: insertData, error } = await supabase
@@ -178,12 +166,9 @@ const useUpdateActivity = (id: number) => {
 
         const {
             activity_name,
-            optimistic,
-            mostLikely,
-            pessimistic,
+            time,
             predecessors,
-            project_id,
-            expected
+            project_id
         } = InsertPayload
 
         // Fetch the labels for the given predecessor activity names
@@ -196,12 +181,9 @@ const useUpdateActivity = (id: number) => {
 
         const payload = {
             activity_name: activity_name,
-            optimistic: parseInt(optimistic),
-            most_likely: parseInt(mostLikely),
-            pessimistic: parseInt(pessimistic),
+            time: parseInt(time),
             project_id: project_id,
             predecessor: predecessorsAlphabet,
-            expected: expected
         }
         console.log(payload);
 

@@ -71,7 +71,7 @@ export default function TaskContent() {
                     <View style={{ gap: 10 }}>
                         <View style={styles.box}>
                             <Text style={styles.labels}>Duration</Text>
-                            <Text style={styles.important}>{item.expected}</Text>
+                            <Text style={styles.important}>{item.time}</Text>
                         </View>
                         <View style={styles.box}>
                             <Text style={styles.labels}>Latest Start</Text>

@@ -9,7 +9,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue
 } from 'react-native-reanimated';
-import Svg, { G, Line, Rect, Text as SvgText } from "react-native-svg";
+import Svg, { Defs, G, Line, Marker, Path, Rect, Text as SvgText } from "react-native-svg";
 import LoadingIndicator from "./loadingIndicator";
 
 interface PositionedTask extends ActivityObjectType {
@@ -26,6 +26,7 @@ interface NodeProps {
   NODE_H: number;
 }
 
+// box nodes
 const Node = memo(({ task, data, NODE_W, NODE_H }: NodeProps) => (
   <G key={task.label}>
     <Rect
@@ -38,7 +39,6 @@ const Node = memo(({ task, data, NODE_W, NODE_H }: NodeProps) => (
       strokeWidth={2}
     />
 
-    {/* for the linear gradient */}
     <Rect
       x={task.x - NODE_W / 2 + 10}
       y={task.y - 17.5}
@@ -67,11 +67,10 @@ const Node = memo(({ task, data, NODE_W, NODE_H }: NodeProps) => (
       alignmentBaseline="middle"
       fill="white"
     >
-      {data.expected + " days"}
+      {data.time + " day/s"}
     </SvgText>
   </G>
 ))
-
 
 export default function FlowChart(
   {
@@ -95,7 +94,7 @@ export default function FlowChart(
     floatingButton: {
       position: "absolute",
       top: 15,
-      right: small === true ? responsiveImageSize(10) :30,
+      right: small === true ? responsiveImageSize(10) : 30,
       zIndex: 1,
       padding: 10,
       borderRadius: 12,
@@ -108,7 +107,7 @@ export default function FlowChart(
       elevation: 5
     },
     buttonText: {
-      fontSize: small === true ? responsiveFont(10): 15,
+      fontSize: small === true ? responsiveFont(10) : 15,
       color: "#fff",
     },
     labelText: {
@@ -140,7 +139,7 @@ export default function FlowChart(
 
   const NODE_W = 0.26 * width
   const NODE_H = 0.07 * height
-  const ROW_GAP = 0.15 * height// vertical distance between depth levels
+  const ROW_GAP = 0.20 * height// vertical distance between depth levels
   const COL_GAP = 0.30 * width // horizontal distance between siblings
   const PAD_Y = 0.2 * height
   const PAD_X = 0.5 * width
@@ -273,9 +272,30 @@ export default function FlowChart(
 
   // lines rendered here
   const renderArrow = (x1: number, y1: number, x2: number, y2: number, key: string, data: ActivityWithTiming[], index: number) => {
+
+    const spacing = 12; // gap before arrowhead
+
+    const dx = x2 - x1
+    const dy = y2 - y1
+    const len = Math.sqrt(dx * dx + dy * dy)
+
+    const newX2 = x2 - (dx / len) * spacing
+    const newY2 = y2 - (dy / len) * spacing
+
+    const strokeColor = data[index].slack === 0 ? "#F24B6F" : "#6b7280";
+    const markerId = `arrow-${key}`;
+
     return (
       <G key={key}>
-        <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={data[index].slack === 0 ? "#F24B6F" : "#6b7280"} strokeWidth={2} />
+        <Defs>
+          <Marker id="arrow-red" markerWidth={6} markerHeight={6} refX={5} refY={5} orient="auto">
+            <Path d="M0,0 L10,5 L0,10 Z" fill="#F24B6F" />
+          </Marker>
+          <Marker id="arrow-gray" markerWidth={6} markerHeight={6} refX={5} refY={5} orient="auto">
+            <Path d="M0,0 L10,5 L0,10 Z" fill="#6b7280" />
+          </Marker>
+        </Defs>
+        <Line x1={x1} y1={y1} x2={newX2} y2={newY2} stroke={strokeColor} strokeWidth={2} markerEnd={`url(#${data[index].slack === 0 ? "arrow-red" : "arrow-gray"})`} />
       </G>
     );
   }

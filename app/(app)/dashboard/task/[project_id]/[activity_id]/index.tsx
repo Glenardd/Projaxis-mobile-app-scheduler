@@ -1,6 +1,5 @@
 import Indicator from "@/components/message-indicator";
 import { useActivityById, useSearchActivity, useUpdateActivity } from "@/services/activity.service";
-import { pert } from "@/utils/pert";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -26,25 +25,19 @@ export default function ActivityEditLayout() {
 
     // values from db
     const activity_name_ = activityById?.activity_name;
-    const optimistic_ = activityById?.optimistic;
-    const most_likely = activityById?.most_likely;
-    const pessimistic_ = activityById?.pessimistic;
-    const projectId_ = activityById?.project_id;
+    const time_ = activityById?.time;
     const activity_id_ = activityById?.id;
     const predecessor_ = activityById?.predecessor;
+    const projectId_ = activityById?.project_id;
 
     const [isFocus, setIsFocus] = useState(false);
 
     const [predecessor, setPredecessor] = useState<string[]>([])
     const [activityName, setActivityName] = useState("")
-    const [optimistic, setOptimistic] = useState("")
-    const [mostLikely, setMostLikely] = useState("")
-    const [pessimistic, setPessimistic] = useState("")
+    const [time, setTime] = useState("")
 
     const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false)
-    const [inputEmpty_optimistic, setInputEmpty_optimistic] = useState(false)
-    const [inputEmpty_pessimistic, setInputEmpty_pessimistic] = useState(false)
-    const [inputEmpty_mostLikey, setInputEmpty_mostLikely] = useState(false)
+    const [inputEmpty_time, setInputEmpty_time] = useState(false)
     const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false)
 
     // find the activity from the predecessor
@@ -72,14 +65,10 @@ export default function ActivityEditLayout() {
         return item ?? []
     }).length !== 0
 
-    const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
-
     useEffect(() => {
         if (!activityById) return
         setActivityName(activity_name_ ?? "")
-        setOptimistic(optimistic_ != null ? String(optimistic_) : "")
-        setMostLikely(most_likely != null ? String(most_likely) : "")
-        setPessimistic(pessimistic_ != null ? String(pessimistic_) : "")
+        setTime(time_ != null ? String(time_) : "")
         setPredecessor(predecessor_content ? predecessor_content.map(item => item.value) : [])
 
         if (!isPending && isSuccess) {
@@ -119,10 +108,6 @@ export default function ActivityEditLayout() {
     return (
         <ScrollView contentContainerStyle={{paddingVertical:30}} style={styles.container}>
             <View style={styles.column}>
-                <View style={styles.expected_time}>
-                    <Text style={styles.label}>Expected Time</Text>
-                    <Text style={{color: "white", fontSize: 40}}>{!expected_time ? 0 : expected_time}d</Text>
-                </View>
                 <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Activity Name</Text>
                     <TextInput
@@ -184,49 +169,15 @@ export default function ActivityEditLayout() {
                     <TextInput
                         placeholder="Time"
                         placeholderTextColor={styles.placeholder.color}
-                        style={[styles.input, { borderColor: inputEmpty_optimistic ? "red" : "#625B71", borderWidth: 1 }]}
-                        value={optimistic}
+                        style={[styles.input, { borderColor: inputEmpty_time ? "red" : "#625B71", borderWidth: 1 }]}
+                        value={time}
                         onChangeText={(optimistic) => {
-                            setOptimistic(optimistic)
+                            setTime(optimistic)
 
                             if (optimistic.length > 0) {
-                                setInputEmpty_optimistic(false)
+                                setInputEmpty_time(false)
                             } else {
-                                setInputEmpty_optimistic(true)
-                            }
-                        }}
-                        keyboardType="numeric"
-                    />
-                </View>
-                <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Most Likely Time</Text>
-                    <TextInput
-                        placeholder="Time"
-                        placeholderTextColor={styles.placeholder.color}
-                        style={[styles.input, { borderColor: inputEmpty_mostLikey ? "red" : "#625B71", borderWidth: 1 }]}
-                        value={mostLikely}
-                        onChangeText={(mostLikely) => {
-                            setMostLikely(mostLikely)
-
-                            if (mostLikely.length > 0) {
-                                setInputEmpty_mostLikely(false)
-                            }
-                        }}
-                        keyboardType="numeric"
-                    />
-                </View>
-                <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Pessimistic Time</Text>
-                    <TextInput
-                        placeholder="Time"
-                        placeholderTextColor={styles.placeholder.color}
-                        style={[styles.input, { borderColor: inputEmpty_pessimistic ? "red" : "#625B71", borderWidth: 1 }]}
-                        value={pessimistic}
-                        onChangeText={(pessimistic) => {
-                            setPessimistic(pessimistic)
-
-                            if (pessimistic.length > 0) {
-                                setInputEmpty_pessimistic(false)
+                                setInputEmpty_time(true)
                             }
                         }}
                         keyboardType="numeric"
@@ -253,18 +204,8 @@ export default function ActivityEditLayout() {
                                 setInputEmpty_predecessor(true)
                             }
 
-                            if (!optimistic.trim()) {
-                                setInputEmpty_optimistic(true)
-                                hasError = true
-                            }
-
-                            if (!mostLikely.trim()) {
-                                setInputEmpty_mostLikely(true)
-                                hasError = true
-                            }
-
-                            if (!pessimistic.trim()) {
-                                setInputEmpty_pessimistic(true)
+                            if (!time.trim()) {
+                                setInputEmpty_time(true)
                                 hasError = true
                             }
 
@@ -277,12 +218,9 @@ export default function ActivityEditLayout() {
                                 //insert data
                                 updateActivityMutate({
                                     activity_name: activityName,
-                                    optimistic: optimistic,
-                                    mostLikely: mostLikely,
-                                    pessimistic: pessimistic,
+                                    time: time,
                                     project_id: projectId_,
                                     predecessors: predecessor,
-                                    expected: expected_time
                                 })
 
                             } catch (e) {
@@ -306,9 +244,7 @@ export default function ActivityEditLayout() {
 
                             setInputEmpty_activityName(false)
                             setInputEmpty_predecessor(false)
-                            setInputEmpty_mostLikely(false)
-                            setInputEmpty_optimistic(false)
-                            setInputEmpty_pessimistic(false)
+                            setInputEmpty_time(false)
 
                             router.back()
                         }}>

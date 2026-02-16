@@ -1,9 +1,8 @@
 import Indicator from "@/components/message-indicator";
 import { useInsertActivity, useSearchActivity } from "@/services/activity.service";
-import { pert } from "@/utils/pert";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { MultiSelect } from "react-native-element-dropdown";
 import { ScrollView } from "react-native-gesture-handler";
@@ -24,14 +23,10 @@ export default function AddTaskContent() {
 
     const [predecessor, setPredecessor] = useState<string[]>([]);
     const [activityName, setActivityName] = useState("")
-    const [optimistic, setOptimistic] = useState("")
-    const [mostLikely, setMostLikely] = useState("")
-    const [pessimistic, setPessimistic] = useState("")
+    const [time, setTime] = useState("")
 
     const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false);
-    const [inputEmpty_optimistic, setInputEmpty_optimistic] = useState(false)
-    const [inputEmpty_pessimistic, setInputEmpty_pessimistic] = useState(false);
-    const [inputEmpty_mostLikey, setInputEmpty_mostLikely] = useState(false);
+    const [inputEmpty_time, setInputEmpty_time] = useState(false)
     const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false);
 
     const { insert_Activity, isPending, isSuccess } = useInsertActivity()
@@ -54,21 +49,9 @@ export default function AddTaskContent() {
         );
     };
 
-    const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
-
-    useEffect(() => {
-        if (!isPending && isSuccess) {
-            router.back();
-        }
-    }, [isPending, isSuccess]);
-
     return (
         <ScrollView style={styles.container}>
             <View style={styles.column}>
-                <View style={styles.expected_time}>
-                    <Text style={styles.label}>Expected Time</Text>
-                    <Text style={{ color: "white", fontSize: 40 }}>{!expected_time ? 0 : expected_time}d</Text>
-                </View>
                 <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Activity Name</Text>
                     <TextInput
@@ -126,53 +109,19 @@ export default function AddTaskContent() {
                     )}
                 </View>
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Optimistic Time</Text>
+                    <Text style={styles.label}>Time</Text>
                     <TextInput
                         placeholder="Time"
                         placeholderTextColor={styles.placeholder.color}
-                        style={[styles.input, { borderColor: inputEmpty_optimistic ? "red" : "#625B71", borderWidth: 1 }]}
-                        value={optimistic}
-                        onChangeText={(optimistic) => {
-                            setOptimistic(optimistic)
+                        style={[styles.input, { borderColor: inputEmpty_time ? "red" : "#625B71", borderWidth: 1 }]}
+                        value={time}
+                        onChangeText={(time) => {
+                            setTime(time)
 
-                            if (optimistic.length > 0) {
-                                setInputEmpty_optimistic(false)
+                            if (time.length > 0) {
+                                setInputEmpty_time(false)
                             } else {
-                                setInputEmpty_optimistic(true)
-                            }
-                        }}
-                        keyboardType="numeric"
-                    />
-                </View>
-                <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Most Likely Time</Text>
-                    <TextInput
-                        placeholder="Time"
-                        placeholderTextColor={styles.placeholder.color}
-                        style={[styles.input, { borderColor: inputEmpty_mostLikey ? "red" : "#625B71", borderWidth: 1 }]}
-                        value={mostLikely}
-                        onChangeText={(mostLikely) => {
-                            setMostLikely(mostLikely)
-
-                            if (mostLikely.length > 0) {
-                                setInputEmpty_mostLikely(false)
-                            }
-                        }}
-                        keyboardType="numeric"
-                    />
-                </View>
-                <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Pessimistic Time</Text>
-                    <TextInput
-                        placeholder="Time"
-                        placeholderTextColor={styles.placeholder.color}
-                        style={[styles.input, { borderColor: inputEmpty_pessimistic ? "red" : "#625B71", borderWidth: 1 }]}
-                        value={pessimistic}
-                        onChangeText={(pessimistic) => {
-                            setPessimistic(pessimistic)
-
-                            if (pessimistic.length > 0) {
-                                setInputEmpty_pessimistic(false)
+                                setInputEmpty_time(true)
                             }
                         }}
                         keyboardType="numeric"
@@ -184,8 +133,6 @@ export default function AddTaskContent() {
 
                             // console.log("activity_name: ", inputEmpty_activityName)
                             // console.log("optimistic: ", inputEmpty_optimistic)
-                            // console.log("most likely: ", inputEmpty_mostLikey)
-                            // console.log("pessimistic: ", inputEmpty_pessimistic)
                             // console.log("predecessor: ", inputEmpty_predecessor)
 
                             let hasError = false
@@ -199,18 +146,8 @@ export default function AddTaskContent() {
                                 setInputEmpty_predecessor(true)
                             }
 
-                            if (!optimistic.trim()) {
-                                setInputEmpty_optimistic(true)
-                                hasError = true
-                            }
-
-                            if (!mostLikely.trim()) {
-                                setInputEmpty_mostLikely(true)
-                                hasError = true
-                            }
-
-                            if (!pessimistic.trim()) {
-                                setInputEmpty_pessimistic(true)
+                            if (!time.trim()) {
+                                setInputEmpty_time(true)
                                 hasError = true
                             }
 
@@ -223,12 +160,9 @@ export default function AddTaskContent() {
                             try {
                                 insert_Activity({
                                     activity_name: activityName,
-                                    optimistic: optimistic,
-                                    mostLikely: mostLikely,
-                                    pessimistic: pessimistic,
+                                    time: time,
                                     project_id: parseInt(project_id) || undefined,
                                     predecessors: predecessor,
-                                    expected: pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
                                 })
 
                             } catch (e) {
@@ -246,15 +180,11 @@ export default function AddTaskContent() {
                             // clear input
                             setPredecessor([])
                             setActivityName("")
-                            setOptimistic("")
-                            setMostLikely("")
-                            setPessimistic("")
+                            setTime("")
 
                             setInputEmpty_activityName(false)
                             setInputEmpty_predecessor(false)
-                            setInputEmpty_mostLikely(false)
-                            setInputEmpty_optimistic(false)
-                            setInputEmpty_pessimistic(false)
+                            setInputEmpty_time(false)
 
                             router.back()
                         }}>

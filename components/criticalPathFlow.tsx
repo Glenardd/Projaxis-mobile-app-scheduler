@@ -87,7 +87,7 @@ export default function CriticalPathFlow({
             }}
           >
             <Text style={{ color: "white", fontSize: 20 }}>
-              {a.expected} days
+              {a.time} days
             </Text>
           </LinearGradient>
         </View>
