@@ -1,77 +1,20 @@
 import { type ActivityObjectType } from "@/services/activity.service";
 import { type ActivityWithTiming } from "@/utils/cpm";
-import { responsiveImageSize } from "@/utils/reponsiveImageSize";
-import { responsiveFont } from "@/utils/responsiveFontSize";
-import { memo, useMemo } from "react";
+import { responsiveSize } from "@/utils/reponsiveSize";
+import { useMemo, useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
   useSharedValue
 } from 'react-native-reanimated';
-import Svg, { G, Line, Rect, Text as SvgText } from "react-native-svg";
-import LoadingIndicator from "./loadingIndicator";
+import Svg from "react-native-svg";
+import LoadingIndicator from "../loadingIndicator";
 
-interface PositionedTask extends ActivityObjectType {
-  x: number
-  y: number
-  depth: number
-  row: number
-}
-
-interface NodeProps {
-  task: PositionedTask;
-  data: ActivityWithTiming;
-  NODE_W: number;
-  NODE_H: number;
-}
-
-const Node = memo(({ task, data, NODE_W, NODE_H }: NodeProps) => (
-  <G key={task.label}>
-    <Rect
-      x={task.x - NODE_W / 2}
-      y={task.y - NODE_H / 2}
-      width={NODE_W}
-      height={NODE_H}
-      rx={10}
-      fill="#1E3E67"
-      strokeWidth={2}
-    />
-
-    {/* for the linear gradient */}
-    <Rect
-      x={task.x - NODE_W / 2 + 10}
-      y={task.y - 17.5}
-      width={35}
-      height={35}
-      rx={10}
-      fill={data.slack === 0 ? "#F24B6F" : "#5fc1ebff"}
-    />
-    <SvgText
-      x={task.x + NODE_W / 2 - 72}
-      y={task.y + 1}
-      fontSize={16}
-      fontWeight="bold"
-      textAnchor="middle"
-      alignmentBaseline="middle"
-      fill="white"
-    >
-      {task.label}
-    </SvgText>
-    <SvgText
-      x={task.x + NODE_W / 2 - 30}
-      y={task.y + 1}
-      fontSize={12}
-      fontWeight="bold"
-      textAnchor="middle"
-      alignmentBaseline="middle"
-      fill="white"
-    >
-      {data.expected + " days"}
-    </SvgText>
-  </G>
-))
-
+import { PositionedTask } from "@/utils/flowchartTypes";
+import Arrow from "./arrow";
+import Node from "./node";
+import ScheduleInfo from "./schecduleInfo";
 
 export default function FlowChart(
   {
@@ -84,18 +27,21 @@ export default function FlowChart(
     {
       data: ActivityWithTiming[],
       isLoading: boolean,
-      isRefetchingByUser: boolean,
-      refetchByUser: () => void,
+      isRefetchingByUser: boolean
+      refetchByUser: () => void
       background?: "none" | "#172038" | "black"
       small?: boolean
     }
 ) {
 
+  const [nodeData, setNodeData] = useState<ActivityWithTiming>()
+  const [modalVisible, setModalVisible] = useState(false);
+
   const styles = StyleSheet.create({
     floatingButton: {
       position: "absolute",
       top: 15,
-      right: small === true ? responsiveImageSize(10) :30,
+      right: small === true ? responsiveSize(10) : 30,
       zIndex: 1,
       padding: 10,
       borderRadius: 12,
@@ -108,7 +54,7 @@ export default function FlowChart(
       elevation: 5
     },
     buttonText: {
-      fontSize: small === true ? responsiveFont(10): 15,
+      fontSize: small === true ? responsiveSize(10) : 15,
       color: "#fff",
     },
     labelText: {
@@ -131,8 +77,13 @@ export default function FlowChart(
       width: Dimensions.get("screen").width * 0.2 - 50,
       height: Dimensions.get("screen").height * 0.01 - 4,
       backgroundColor: "#6b7280"
+    },
+    completed: {
+      width: Dimensions.get("screen").width * 0.2 - 50,
+      height: Dimensions.get("screen").height * 0.01 - 4,
+      backgroundColor: "#3b77c6ff"
     }
-  });
+  })
 
   /* ----------------------- panning and pinching ---------------------------- */
 
@@ -140,8 +91,8 @@ export default function FlowChart(
 
   const NODE_W = 0.26 * width
   const NODE_H = 0.07 * height
-  const ROW_GAP = 0.15 * height// vertical distance between depth levels
-  const COL_GAP = 0.30 * width // horizontal distance between siblings
+  const ROW_GAP = 0.20 * height
+  const COL_GAP = 0.30 * width
   const PAD_Y = 0.2 * height
   const PAD_X = 0.5 * width
   const INIT_SCALE = width < 375 ? 0.7 : width < 768 ? 0.8 : 1.0
@@ -160,6 +111,7 @@ export default function FlowChart(
   const savedScale = useSharedValue(1)
 
   const panGesture = Gesture.Pan()
+    .minDistance(10)
     .onUpdate((e) => {
       positionX.value = offsetX.value + e.translationX
       positionY.value = offsetY.value + e.translationY
@@ -183,7 +135,6 @@ export default function FlowChart(
       hasMovedY.value = true
     })
 
-  // Native scroll gesture
   const nativeScroll = Gesture.Native()
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -194,25 +145,20 @@ export default function FlowChart(
     ],
   }));
 
-  // if diagram is moved turn on btn opacity
   const buttonStyle = useAnimatedStyle(() => ({
     opacity: hasMovedX.value || hasMovedY.value ? 1 : 0,
     pointerEvents: hasMovedX.value || hasMovedY.value ? 'auto' : 'none',
   }));
 
-  // Combine both gestures
   const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture, nativeScroll)
 
   /* ----------------------- diagrams ---------------------------- */
 
-  // topological sort and positioning of x and y
   const computeLayout = (tasks: ActivityObjectType[], screenWidth: number): PositionedTask[] => {
     const taskMap = new Map(tasks.map((t) => [t.label, t]))
 
-    // Calculate depth for each task based on longest predecessor chain
     const depthMap = new Map<string, number>()
 
-    // will determine who's on top to bottom
     const getDepth = (label: string): number => {
       if (depthMap.has(label)) return depthMap.get(label)!;
       const task = taskMap.get(label);
@@ -229,7 +175,6 @@ export default function FlowChart(
       getDepth(t.label)
     })
 
-    // Group tasks by depth level
     const levels = new Map<number, string[]>()
     depthMap.forEach((depth, label) => {
       if (!levels.has(depth)) levels.set(depth, [])
@@ -244,7 +189,6 @@ export default function FlowChart(
       const index = levelTasks.indexOf(task.label);
       const count = levelTasks.length;
 
-      // spread children evenly, centered on screen
       const totalSpan = (count - 1) * COL_GAP
       const startX = centerX - totalSpan / 2
 
@@ -267,60 +211,58 @@ export default function FlowChart(
     [positioned]
   );
 
-  // Calculate canvas height
   const maxY = Math.max(...positioned.map((t) => t.y)) + NODE_H / 2 + PAD_Y;
   const canvasH = maxY;
 
-  // lines rendered here
-  const renderArrow = (x1: number, y1: number, x2: number, y2: number, key: string, data: ActivityWithTiming[], index: number) => {
-    return (
-      <G key={key}>
-        <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={data[index].slack === 0 ? "#F24B6F" : "#6b7280"} strokeWidth={2} />
-      </G>
-    );
-  }
-
-  // build lines here
+  // build edges with correct slack lookup by label
   const edges = useMemo(() => {
     const result: React.ReactNode[] = [];
 
-    positioned.forEach((task, index) => {
+    // Map data by label for correct slack lookup
+    const dataMap = new Map(data.map(d => [d.label, d]));
+
+    positioned.forEach((task) => {
       task.predecessor.forEach((predLabel) => {
         const pred = posMap.get(predLabel);
         if (!pred) return;
 
+        const fromActivity = dataMap.get(predLabel)
+        const toActivity = dataMap.get(task.label)
+
+        if (!fromActivity || !toActivity) return
+
         result.push(
-          renderArrow(
-            pred.x,
-            pred.y + NODE_H / 2,
-            task.x,
-            task.y - NODE_H / 2,
-            `${predLabel}->${task.label}`,
-            data,
-            index
-          )
+          <Arrow
+            key={`${predLabel}->${task.label}`}
+            x1={pred.x}
+            y1={pred.y + NODE_H / 2}
+            x2={task.x}
+            y2={task.y - NODE_H / 2}
+            keyId={`${predLabel}->${task.label}`}
+            from={fromActivity}
+            to={toActivity}
+          />
         );
       });
     });
 
     return result;
-  }, [positioned]);
+  }, [positioned, data]);
 
-  // final render
   return isLoading ? <LoadingIndicator /> : (
     <>
-      <View
-        style={{ flex: 1, backgroundColor: background }}
-      >
+      <View style={{ flex: 1, backgroundColor: background }}>
         <View style={{ zIndex: 1 }}>
           <View style={styles.legendContainer}>
             <View style={{ flexDirection: "column", justifyContent: "center", gap: 5 }}>
               <Text style={styles.labelText}>Critical</Text>
               <Text style={styles.labelText}>Non-critical</Text>
+              <Text style={styles.labelText}>Completed</Text>
             </View>
-            <View style={{ flexDirection: "column", justifyContent: "space-evenly", alignItems: "center", gap: 5 }}>
+            <View style={{ flexDirection: "column", justifyContent: "space-evenly", alignItems: "center", gap: 20 }}>
               <View style={styles.critical} />
               <View style={styles.nonCritical} />
+              <View style={styles.completed} />
             </View>
           </View>
           <Animated.View style={buttonStyle}>
@@ -330,13 +272,10 @@ export default function FlowChart(
               onPress={() => {
                 positionX.value = 0
                 positionY.value = 0
-
                 offsetX.value = 0
                 offsetY.value = 0
-
                 hasMovedX.value = false
                 hasMovedY.value = false
-
                 scale.value = INIT_SCALE
               }}>
               <Text style={styles.buttonText}>Reset</Text>
@@ -347,13 +286,30 @@ export default function FlowChart(
         <GestureDetector gesture={composedGesture}>
           <Animated.View style={[animatedStyle, { alignItems: "center", justifyContent: "center" }]}>
             <Svg width={width * 2} height={canvasH}>
-              {/* lines */}
+
+              {/* Edges */}
               {edges}
 
               {/* Nodes */}
               {positioned.map((task, i) => (
-                <Node key={task.label} task={task} data={data[i]} NODE_W={NODE_W} NODE_H={NODE_H} />
+                <Node
+                  onPress={(task) => {
+                    setNodeData(task)
+                    setModalVisible(true)
+                  }}
+                  key={task.label}
+                  task={task}
+                  data={data[i]}
+                  NODE_W={NODE_W}
+                  NODE_H={NODE_H}
+                />
               ))}
+
+              <ScheduleInfo
+                isVisible={modalVisible}
+                onClose={() => setModalVisible(!modalVisible)}
+                nodeData={nodeData}
+              />
             </Svg>
           </Animated.View>
         </GestureDetector>

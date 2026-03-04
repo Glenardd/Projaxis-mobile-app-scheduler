@@ -1,5 +1,5 @@
 import Indicator from "@/components/message-indicator";
-import { useInsertActivity, useSearchActivity } from "@/services/activity.service";
+import { useActivityById, useSearchActivity, useUpdateActivity } from "@/services/activity.service";
 import { pert } from "@/utils/pert";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -13,37 +13,81 @@ interface PredecessorsTypes {
     value: string
 }
 
-export default function AddTaskContent() {
+export default function ActivityEditPert() {
 
     const router = useRouter()
 
-    const { project_id } = useLocalSearchParams<{ project_id: string }>();
-    const { activity: data_, isRefetchingByUser, refetchByUser, isLoading } = useSearchActivity(parseInt(project_id))
+    const { activity_id } = useLocalSearchParams<{ activity_id: string }>()
+    const { project_id } = useLocalSearchParams<{ project_id: string }>()
+
+    const { isPending, isSuccess, updateActivityMutate } = useUpdateActivity(parseInt(activity_id), () => {
+        router.back() // on success
+    })
+
+    const { activity: activityById, refetchByUser: refetchByUserById, isRefetchingByUser: isRefetchingByUserById, isLoading: loadingActivity } = useActivityById(parseInt(activity_id))
+    const { activity: searchedActivity, refetchByUser: refetchByUserSearch, isRefetchingByUser: isRefetchingByUserSearch, isLoading: loadingSearchActivity } = useSearchActivity(parseInt(project_id))
+
+    // values from db
+    const activity_name_ = activityById?.activity_name;
+    const optimistic_ = activityById?.optimistic;
+    const most_likely = activityById?.most_likely;
+    const pessimistic_ = activityById?.pessimistic;
+    const projectId_ = activityById?.project_id;
+    const activity_id_ = activityById?.id;
+    const predecessor_ = activityById?.predecessor;
 
     const [isFocus, setIsFocus] = useState(false);
 
-    const [predecessor, setPredecessor] = useState<string[]>([]);
+    const [predecessor, setPredecessor] = useState<string[]>([])
     const [activityName, setActivityName] = useState("")
     const [optimistic, setOptimistic] = useState("")
     const [mostLikely, setMostLikely] = useState("")
     const [pessimistic, setPessimistic] = useState("")
 
-    const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false);
+    const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false)
     const [inputEmpty_optimistic, setInputEmpty_optimistic] = useState(false)
-    const [inputEmpty_pessimistic, setInputEmpty_pessimistic] = useState(false);
-    const [inputEmpty_mostLikey, setInputEmpty_mostLikely] = useState(false);
-    const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false);
+    const [inputEmpty_pessimistic, setInputEmpty_pessimistic] = useState(false)
+    const [inputEmpty_mostLikey, setInputEmpty_mostLikely] = useState(false)
+    const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false)
 
-    const { insert_Activity, isPending, isSuccess } = useInsertActivity()
+    const [isLoading, setIsLoading] = useState(false)
 
-    const data = data_?.map((item) => ({
+    // find the activity from the predecessor
+    const activity_predecessor = searchedActivity?.filter((item) => predecessor_?.includes(item.label))
+    const predecessor_content = activity_predecessor?.map((item) => ({
         label: item.label,
         value: item.activity_name
-    })) || []
+    }))
+    // console.log("Activity Predecessor at [activity_id]/index", predecessor_content)
 
-    const isPredecessor = data_?.map((item) => {
-        return item.predecessor ?? []
+    const activityOptions = searchedActivity
+        ? searchedActivity
+            .filter(item => item.id !== parseInt(activity_id))
+            .map((item) => ({
+                label: item.label,
+                value: item.activity_name
+            }))
+        : [];
+
+    // logging
+    activityOptions.map((item) => console.log({ label: item.label, value: item.value }))
+
+    // will check if it has predecessor available
+    const isPredecessor = predecessor_?.map((item) => {
+        return item ?? []
     }).length !== 0
+
+    const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
+
+    useEffect(() => {
+        if (!activityById) return
+        setActivityName(activity_name_ ?? "")
+        setOptimistic(optimistic_ != null ? String(optimistic_) : "")
+        setMostLikely(most_likely != null ? String(most_likely) : "")
+        setPessimistic(pessimistic_ != null ? String(pessimistic_) : "")
+        setPredecessor(predecessor_content ? predecessor_content.map(item => item.value) : [])
+
+    }, [activityById])
 
     const renderItem = ({ value, label }: PredecessorsTypes) => {
         return (
@@ -54,21 +98,21 @@ export default function AddTaskContent() {
         );
     };
 
-    const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
-
-    useEffect(() => {
-        if (!isPending && isSuccess) {
-            router.back();
-        }
-    }, [isPending, isSuccess]);
-
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 50 }} style={styles.container}>
+            {/* while data is fetching initiate loading */}
+            <Indicator message="Loading" isPending={loadingActivity} />
+
+
             <View style={styles.column}>
+
+                {/* pert */}
                 <View style={styles.expected_time}>
-                    <Text style={styles.label}>Expected Time</Text>
-                    <Text style={{ color: "white", fontSize: 40 }}>{!expected_time ? 0 : expected_time}d</Text>
+                    <Text style={styles.label}>Duration/Time</Text>
+                    <Text style={{ color: "white", fontSize: 50 }}>{!expected_time ? 0 : expected_time}d</Text>
                 </View>
+
+                {/* activity name */}
                 <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Activity Name</Text>
                     <TextInput
@@ -83,8 +127,11 @@ export default function AddTaskContent() {
                                 setInputEmpty_activityName(false)
                             }
                         }}
+                        maxLength={60}
                     />
                 </View>
+
+                {/* Predecessor select */}
                 <View style={styles.fieldContainer}>
                     {isPredecessor && (
                         <>
@@ -92,7 +139,7 @@ export default function AddTaskContent() {
                             <MultiSelect
                                 mode="auto"
                                 style={[styles.input, { borderColor: inputEmpty_predecessor ? "red" : "#625B71", borderWidth: 1 }]}
-                                data={data}
+                                data={activityOptions}
                                 placeholderStyle={styles.placeholder}
                                 labelField="label"
                                 valueField="value"
@@ -100,8 +147,8 @@ export default function AddTaskContent() {
                                 renderItem={renderItem}
                                 value={predecessor}
                                 onChange={(item) => {
+                                    console.log("Items is: ", item)
                                     if (item === null) {
-                                        console.log(item)
                                         setIsFocus(false)
                                         setInputEmpty_predecessor(true)
 
@@ -125,6 +172,8 @@ export default function AddTaskContent() {
                         </>
                     )}
                 </View>
+
+                {/* optimistic */}
                 <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Optimistic Time</Text>
                     <TextInput
@@ -144,6 +193,8 @@ export default function AddTaskContent() {
                         keyboardType="numeric"
                     />
                 </View>
+
+                {/*  most likely */}
                 <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Most Likely Time</Text>
                     <TextInput
@@ -161,6 +212,8 @@ export default function AddTaskContent() {
                         keyboardType="numeric"
                     />
                 </View>
+
+                {/* pessimistic */}
                 <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Pessimistic Time</Text>
                     <TextInput
@@ -178,9 +231,11 @@ export default function AddTaskContent() {
                         keyboardType="numeric"
                     />
                 </View>
+
+                {/* update task */}
                 <View style={[styles.row, { justifyContent: "space-between", paddingTop: 10 }]}>
                     <View style={styles.buttons}>
-                        <Pressable disabled={isPending} onPress={async () => {
+                        <Pressable onPress={async () => {
 
                             // console.log("activity_name: ", inputEmpty_activityName)
                             // console.log("optimistic: ", inputEmpty_optimistic)
@@ -219,36 +274,36 @@ export default function AddTaskContent() {
                                 return
                             }
 
-                            //insert data
                             try {
-                                insert_Activity({
+                                //insert data
+                                updateActivityMutate({
                                     activity_name: activityName,
                                     optimistic: optimistic,
                                     mostLikely: mostLikely,
                                     pessimistic: pessimistic,
-                                    project_id: parseInt(project_id) || undefined,
+                                    project_id: projectId_,
                                     predecessors: predecessor,
-                                    expected: pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
+                                    expected: expected_time
                                 })
 
                             } catch (e) {
-                                console.log(e)
+                                throw console.log(e)
                             }
 
                         }}>
                             <LinearGradient style={{ borderRadius: 10, padding: 10 }} colors={isPending ? ["#3A3F6B", "#3A3F6B"] : ["#63D0FF", "#427CE8", "#235691"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                                <Text style={{ textAlign: "center", color: "white", fontWeight: "600" }}>Add Task</Text>
+                                <Text style={{ textAlign: "center", color: "white", fontWeight: "600" }}>Update Task</Text>
                             </LinearGradient>
                         </Pressable>
                     </View>
                     <View style={styles.buttons}>
-                        <Pressable disabled={isPending} onPress={() => {
+                        <Pressable onPress={() => {
                             // clear input
-                            setPredecessor([])
-                            setActivityName("")
-                            setOptimistic("")
-                            setMostLikely("")
-                            setPessimistic("")
+                            // setPredecessor([])
+                            // setActivityName("")
+                            // setOptimistic("")
+                            // setMostLikely("")
+                            // setPessimistic("")
 
                             setInputEmpty_activityName(false)
                             setInputEmpty_predecessor(false)
@@ -272,7 +327,8 @@ export default function AddTaskContent() {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 28,
+        paddingLeft: 28,
+        paddingRight: 28,
         flex: 1
     },
     savingText: {
@@ -304,15 +360,13 @@ const styles = StyleSheet.create({
     },
     input: {
         color: "#AEB7DA",
-        height: 40,
         padding: 10,
-        minWidth: "40%",
         backgroundColor: "#252A4A",
         borderRadius: 10,
     },
     column: {
         flexDirection: "column",
-        gap: 5
+        gap: 3
     },
     row: {
         flexDirection: "row",

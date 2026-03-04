@@ -1,6 +1,7 @@
 import LoadingIndicator from "@/components/loadingIndicator";
 import { useSearchActivity } from "@/services/activity.service";
 import { criticalPathMethod, type ActivityWithTiming } from "@/utils/cpm";
+import { responsiveSize } from "@/utils/reponsiveSize";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
@@ -42,14 +43,14 @@ export default function TaskContent() {
 
                     {item.slack !== 0 ?
                         (<View style={{ backgroundColor: "#59A43E", padding: 5, borderRadius: 5 }}>
-                            <Text style={{ color: "white", fontSize: 10 }}>Non-Critical</Text>
-                        </View>) : (<View style={{ backgroundColor: "#D32254", padding: 5, borderRadius: 5 }}>
-                            <Text style={{ color: "white", fontSize: 10 }}>Critical</Text>
+                            <Text style={{ color: "white", fontSize: responsiveSize(10) }}>Non-Critical</Text>
+                        </View>) : (<View style={{ backgroundColor: "#D32254", padding: responsiveSize(5), borderRadius: 5 }}>
+                            <Text style={{ color: "white", fontSize: responsiveSize(10) }}>Critical</Text>
                         </View>)}
                 </View>
                 <View style={styles.column}>
                     {/* row */}
-                    <View style={{ gap: 10 }}>
+                    <View style={{ gap: responsiveSize(10) }}>
                         <View style={styles.box}>
                             <Text style={styles.labels}>Predecessors</Text>
                             <Text style={styles.important}>{showPredecessors}</Text>
@@ -75,7 +76,7 @@ export default function TaskContent() {
                         </View>
                         <View style={styles.box}>
                             <Text style={styles.labels}>Latest Start</Text>
-                            <Text style={styles.important}>{item.slack}</Text>
+                            <Text style={styles.important}>{item.LS}</Text>
                         </View>
                         <View style={styles.box}>
                             <Text style={styles.labels}>Latest Finish</Text>
@@ -94,9 +95,9 @@ export default function TaskContent() {
                 renderItem={activity_container}
                 refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser}/>}
                 keyExtractor={(item) => item ? item?.id.toString() : ""}
-                ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
+                ItemSeparatorComponent={() => <View style={{ height: responsiveSize(15) }} />}
                 contentContainerStyle={{
-                    padding: 25,
+                    padding: responsiveSize(25),
                     flexGrow: 1
                 }}
                 ListHeaderComponentStyle={{
@@ -104,7 +105,7 @@ export default function TaskContent() {
                 }}
                 ListEmptyComponent={
                     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                        <Text style={{ color: "#30396cff", fontSize: 15 }}>Add activity first</Text>
+                        <Text style={{ color: "#30396cff", fontSize: responsiveSize(15) }}>Add activity first</Text>
                     </View>
                 }
                 style={{ width: "100%" }}
@@ -120,32 +121,32 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(98,91,113,0.28)',
         borderRadius: 15,
         backgroundColor: "#172038",
-        padding: 20,
+        padding: responsiveSize(20),
         overflow: "hidden",
-        gap: 15,
+        gap: responsiveSize(15),
     },
     important: {
         color: "white",
-        fontSize: 15,
+        fontSize: responsiveSize(15),
         fontWeight: "600"
     },
     box: {
         backgroundColor: "#070C27",
-        height: 63,
+        height: responsiveSize(63),
         minWidth: "50%",
         justifyContent: "center",
-        padding: 10,
+        padding: responsiveSize(10),
         borderRadius: 10,
-        gap: 10
+        gap: responsiveSize(10)
     },
     column: {
         justifyContent: "center",
         alignItems: "flex-start",
-        gap: 12,
+        gap: responsiveSize(12),
         flexDirection: "row"
     },
     labels: {
         color: "#AEB7DA",
-        fontSize: 12
+        fontSize: responsiveSize(12)
     },
 });

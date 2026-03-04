@@ -1,4 +1,4 @@
-import FlowChart from "@/components/flowchart";
+import FlowChart from "@/components/flowchart/flowchart";
 import LoadingIndicator from "@/components/loadingIndicator";
 import { useSearchActivity } from "@/services/activity.service";
 import { criticalPathMethod, type ActivityWithTiming } from "@/utils/cpm";

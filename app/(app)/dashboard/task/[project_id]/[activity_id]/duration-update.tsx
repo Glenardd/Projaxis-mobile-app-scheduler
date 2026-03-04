@@ -1,6 +1,5 @@
 import Indicator from "@/components/message-indicator";
 import { useActivityById, useSearchActivity, useUpdateActivity } from "@/services/activity.service";
-import { pert } from "@/utils/pert";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -13,38 +12,35 @@ interface PredecessorsTypes {
     value: string
 }
 
-export default function ActivityEditLayout() {
+export default function ActivityEditDuration() {
 
     const router = useRouter()
 
     const { activity_id } = useLocalSearchParams<{ activity_id: string }>()
     const { project_id } = useLocalSearchParams<{ project_id: string }>()
 
-    const { isPending, isSuccess, updateActivityMutate } = useUpdateActivity(parseInt(activity_id))
-    const { activity: activityById, refetchByUser: refetchByUserById, isRefetchingByUser: isRefetchingByUserById } = useActivityById(parseInt(activity_id))
-    const { activity: searchedActivity, refetchByUser: refetchByUserSearch, isRefetchingByUser: isRefetchingByUserSearch } = useSearchActivity(parseInt(project_id))
+    const { isPending, isSuccess, updateActivityMutate } = useUpdateActivity(parseInt(activity_id), () => {
+        router.back() // on success
+    })
+
+    const { activity: activityById, refetchByUser: refetchByUserById, isRefetchingByUser: isRefetchingByUserById, isLoading: loadingActivity } = useActivityById(parseInt(activity_id))
+    const { activity: searchedActivity, refetchByUser: refetchByUserSearch, isRefetchingByUser: isRefetchingByUserSearch, isLoading: loadingSearchActivity } = useSearchActivity(parseInt(project_id))
 
     // values from db
-    const activity_name_ = activityById?.activity_name;
-    const optimistic_ = activityById?.optimistic;
-    const most_likely = activityById?.most_likely;
-    const pessimistic_ = activityById?.pessimistic;
-    const projectId_ = activityById?.project_id;
-    const activity_id_ = activityById?.id;
-    const predecessor_ = activityById?.predecessor;
+    const activity_name_ = activityById?.activity_name
+    const projectId_ = activityById?.project_id
+    const activity_id_ = activityById?.id
+    const predecessor_ = activityById?.predecessor
+    const duration_ = activityById?.expected
 
     const [isFocus, setIsFocus] = useState(false);
 
     const [predecessor, setPredecessor] = useState<string[]>([])
     const [activityName, setActivityName] = useState("")
-    const [optimistic, setOptimistic] = useState("")
-    const [mostLikely, setMostLikely] = useState("")
-    const [pessimistic, setPessimistic] = useState("")
+    const [duration, setDuration] = useState("")
 
     const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false)
-    const [inputEmpty_optimistic, setInputEmpty_optimistic] = useState(false)
-    const [inputEmpty_pessimistic, setInputEmpty_pessimistic] = useState(false)
-    const [inputEmpty_mostLikey, setInputEmpty_mostLikely] = useState(false)
+    const [inputEmpty_duraton, setInputEmpty_duration] = useState(false)
     const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false)
 
     // find the activity from the predecessor
@@ -72,20 +68,13 @@ export default function ActivityEditLayout() {
         return item ?? []
     }).length !== 0
 
-    const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
-
     useEffect(() => {
         if (!activityById) return
         setActivityName(activity_name_ ?? "")
-        setOptimistic(optimistic_ != null ? String(optimistic_) : "")
-        setMostLikely(most_likely != null ? String(most_likely) : "")
-        setPessimistic(pessimistic_ != null ? String(pessimistic_) : "")
+        setDuration(duration_ != null ? String(duration_) : "")
         setPredecessor(predecessor_content ? predecessor_content.map(item => item.value) : [])
 
-        if (!isPending && isSuccess) {
-            router.back();
-        }
-    }, [activityById, isPending, isSuccess])
+    }, [activityById])
 
     const renderItem = ({ value, label }: PredecessorsTypes) => {
         return (
@@ -96,33 +85,13 @@ export default function ActivityEditLayout() {
         );
     };
 
-    //for logging
-    // useEffect(() => {
-    //     console.log("activityName:", activityName)
-    //     console.log("optimistic:", optimistic)
-    //     console.log("mostLikely:", mostLikely)
-    //     console.log("pessimistic:", pessimistic)
-    //     console.log("predecessor:", predecessor)
-    //     console.log("inputEmpty_activityName:", inputEmpty_activityName)
-    // }, [
-    //     activityName,
-    //     optimistic,
-    //     mostLikely,
-    //     pessimistic,
-    //     predecessor,
-    //     inputEmpty_activityName,
-    //     inputEmpty_optimistic,
-    //     inputEmpty_pessimistic,
-    //     inputEmpty_predecessor
-    // ])
-
     return (
-        <ScrollView contentContainerStyle={{paddingVertical:30}} style={styles.container}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 50 }} style={styles.container}>
+            {/* while data is fetching initiate loading */}
+            <Indicator message="Loading" isPending={loadingActivity} />
+
             <View style={styles.column}>
-                <View style={styles.expected_time}>
-                    <Text style={styles.label}>Expected Time</Text>
-                    <Text style={{color: "white", fontSize: 40}}>{!expected_time ? 0 : expected_time}d</Text>
-                </View>
+                {/* activity name */}
                 <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Activity Name</Text>
                     <TextInput
@@ -137,8 +106,11 @@ export default function ActivityEditLayout() {
                                 setInputEmpty_activityName(false)
                             }
                         }}
+                        maxLength={60}
                     />
                 </View>
+
+                {/* Predecessor select */}
                 <View style={styles.fieldContainer}>
                     {isPredecessor && (
                         <>
@@ -179,67 +151,35 @@ export default function ActivityEditLayout() {
                         </>
                     )}
                 </View>
+
+                {/* duration */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Optimistic Time</Text>
+                    <Text style={styles.label}>Duration</Text>
                     <TextInput
                         placeholder="Time"
                         placeholderTextColor={styles.placeholder.color}
-                        style={[styles.input, { borderColor: inputEmpty_optimistic ? "red" : "#625B71", borderWidth: 1 }]}
-                        value={optimistic}
-                        onChangeText={(optimistic) => {
-                            setOptimistic(optimistic)
+                        style={[styles.input, { borderColor: inputEmpty_duraton ? "red" : "#625B71", borderWidth: 1 }]}
+                        value={duration}
+                        onChangeText={(text) => {
+                            setDuration(text)
 
-                            if (optimistic.length > 0) {
-                                setInputEmpty_optimistic(false)
+                            if (text.trim().length > 0) {
+                                setInputEmpty_duration(false)
                             } else {
-                                setInputEmpty_optimistic(true)
+                                setInputEmpty_duration(true)
                             }
                         }}
                         keyboardType="numeric"
                     />
                 </View>
-                <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Most Likely Time</Text>
-                    <TextInput
-                        placeholder="Time"
-                        placeholderTextColor={styles.placeholder.color}
-                        style={[styles.input, { borderColor: inputEmpty_mostLikey ? "red" : "#625B71", borderWidth: 1 }]}
-                        value={mostLikely}
-                        onChangeText={(mostLikely) => {
-                            setMostLikely(mostLikely)
 
-                            if (mostLikely.length > 0) {
-                                setInputEmpty_mostLikely(false)
-                            }
-                        }}
-                        keyboardType="numeric"
-                    />
-                </View>
-                <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Pessimistic Time</Text>
-                    <TextInput
-                        placeholder="Time"
-                        placeholderTextColor={styles.placeholder.color}
-                        style={[styles.input, { borderColor: inputEmpty_pessimistic ? "red" : "#625B71", borderWidth: 1 }]}
-                        value={pessimistic}
-                        onChangeText={(pessimistic) => {
-                            setPessimistic(pessimistic)
-
-                            if (pessimistic.length > 0) {
-                                setInputEmpty_pessimistic(false)
-                            }
-                        }}
-                        keyboardType="numeric"
-                    />
-                </View>
+                {/* update task */}
                 <View style={[styles.row, { justifyContent: "space-between", paddingTop: 10 }]}>
                     <View style={styles.buttons}>
                         <Pressable onPress={async () => {
 
                             // console.log("activity_name: ", inputEmpty_activityName)
                             // console.log("optimistic: ", inputEmpty_optimistic)
-                            // console.log("most likely: ", inputEmpty_mostLikey)
-                            // console.log("pessimistic: ", inputEmpty_pessimistic)
                             // console.log("predecessor: ", inputEmpty_predecessor)
 
                             let hasError = false
@@ -253,18 +193,8 @@ export default function ActivityEditLayout() {
                                 setInputEmpty_predecessor(true)
                             }
 
-                            if (!optimistic.trim()) {
-                                setInputEmpty_optimistic(true)
-                                hasError = true
-                            }
-
-                            if (!mostLikely.trim()) {
-                                setInputEmpty_mostLikely(true)
-                                hasError = true
-                            }
-
-                            if (!pessimistic.trim()) {
-                                setInputEmpty_pessimistic(true)
+                            if (!duration.trim()) {
+                                setInputEmpty_duration(true)
                                 hasError = true
                             }
 
@@ -277,12 +207,12 @@ export default function ActivityEditLayout() {
                                 //insert data
                                 updateActivityMutate({
                                     activity_name: activityName,
-                                    optimistic: optimistic,
-                                    mostLikely: mostLikely,
-                                    pessimistic: pessimistic,
+                                    optimistic: "",
+                                    mostLikely: "",
+                                    pessimistic: "",
                                     project_id: projectId_,
                                     predecessors: predecessor,
-                                    expected: expected_time
+                                    expected: parseInt(duration)
                                 })
 
                             } catch (e) {
@@ -298,17 +228,9 @@ export default function ActivityEditLayout() {
                     <View style={styles.buttons}>
                         <Pressable onPress={() => {
                             // clear input
-                            // setPredecessor([])
-                            // setActivityName("")
-                            // setOptimistic("")
-                            // setMostLikely("")
-                            // setPessimistic("")
-
                             setInputEmpty_activityName(false)
                             setInputEmpty_predecessor(false)
-                            setInputEmpty_mostLikely(false)
-                            setInputEmpty_optimistic(false)
-                            setInputEmpty_pessimistic(false)
+                            setInputEmpty_duration(false)
 
                             router.back()
                         }}>
@@ -326,8 +248,8 @@ export default function ActivityEditLayout() {
 
 const styles = StyleSheet.create({
     container: {
-        paddingLeft:28,
-        paddingRight:28,
+        paddingLeft: 28,
+        paddingRight: 28,
         flex: 1
     },
     savingText: {
@@ -359,9 +281,7 @@ const styles = StyleSheet.create({
     },
     input: {
         color: "#AEB7DA",
-        height: 40,
         padding: 10,
-        minWidth: "40%",
         backgroundColor: "#252A4A",
         borderRadius: 10,
     },
@@ -401,8 +321,8 @@ const styles = StyleSheet.create({
         padding: 5,
         borderRadius: 10
     },
-    expected_time:{
-        justifyContent:"center", alignItems:"center"
+    expected_time: {
+        justifyContent: "center", alignItems: "center"
 
     }
 })

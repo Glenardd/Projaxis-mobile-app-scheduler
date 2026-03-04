@@ -1,12 +1,11 @@
 import ActivityContainer from "@/components/activity-card";
-import AddActivityButton from "@/components/add-activity-button";
 import LoadingIndicator from "@/components/loadingIndicator";
 import { useSearchActivity } from "@/services/activity.service";
 import { criticalPathMethod } from "@/utils/cpm";
 import { useLocalSearchParams } from "expo-router";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 
-export default function TaskSearch() {
+export default function TaskDone() {
 
     const { project_id } = useLocalSearchParams<{ project_id: string }>()
 
@@ -15,24 +14,23 @@ export default function TaskSearch() {
 
     // sort data when
     const sortedData = data?.sort((a, b) => a.label.localeCompare(b.label))
-    const onGoingTask = sortedData?.filter((data) => data.isDone === false)
-    const cpm = criticalPathMethod(sortedData || []);
+    const taskDone = sortedData?.filter((data) => data.isDone === true)
+    const cpm = criticalPathMethod(sortedData || [])
 
     return isLoading ? <LoadingIndicator /> : (
         <>
             <FlatList
-                data={onGoingTask}
+                data={taskDone}
                 renderItem={({ item }) => (
                     <ActivityContainer
                         item={item}
                         project_id={project_id}
-                        isComplete={true}
+                        isComplete={false}
                         cpm={cpm}
                     />
                 )}
                 keyExtractor={(item) => item.id.toString()}
                 showsVerticalScrollIndicator={false}
-                ListHeaderComponent={<AddActivityButton project_id={project_id} />}
                 refreshControl={
                     <RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />
                 }

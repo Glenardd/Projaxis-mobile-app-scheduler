@@ -1,6 +1,7 @@
 import CriticalPathFlow from "@/components/criticalPathFlow";
 import { useSearchActivity } from "@/services/activity.service";
 import { criticalPathMethod, type ActivityWithTiming } from "@/utils/cpm";
+import { responsiveSize } from "@/utils/reponsiveSize";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
@@ -70,41 +71,45 @@ export default function ProjectSummaryContent() {
         )
     }
 
+    const doneDuration =Math.max(...cpm.filter(a => a.isDone).map(a => a.EF), 0)
+    const criticalActivityDone = cpm?.filter((item) => item.slack === 0 && item.isDone === true).length || 0
+    const allTaskDone = cpm?.filter((item) => item.isDone === true).length || 0
+
     /* ---------------- duration progress ------------------*/
-    const { width: durationProgress, percent: percentDuration, current: currentDuration } = calculateProgress(width, duration, duration)
+    const { width: durationProgress, percent: percentDuration, current: currentDuration } = calculateProgress(width, duration, doneDuration)
 
     /* ---------------- critical progress ------------------*/
-    const { width: criticalProgress, percent: percentCritical, current: currentCritical } = calculateProgress(width, critical, 1)
+    const { width: criticalProgress, percent: percentCritical, current: currentCritical } = calculateProgress(width, critical, criticalActivityDone)
 
     /* ---------------- critical progress ------------------*/
-    const { width: completedProgress, percent: percentCompleted, current: currentCompleted } = calculateProgress(width, totalActivities, 3)
+    const { width: completedProgress, percent: percentCompleted, current: currentCompleted } = calculateProgress(width, totalActivities,allTaskDone)
 
     const styles = StyleSheet.create({
         container: {
-            paddingLeft: 28,
-            paddingRight: 28,
+            paddingLeft: responsiveSize(28),
+            paddingRight: responsiveSize(28),
             flex: 1
         },
         label: {
             color: "white",
-            fontSize: 12
+            fontSize: responsiveSize(12)
         },
         secondaryLabel: {
             color: "#AEB7DA",
-            fontSize: 12
+            fontSize: responsiveSize(12)
         },
         value: {
-            fontSize: 30,
+            fontSize: responsiveSize(30),
             color: "white"
         },
         col: {
             flexDirection: "column",
             justifyContent: "center",
-            gap: 2
+            gap: responsiveSize(2)
         },
         row: {
             flexDirection: "row",
-            gap: 10
+            gap: responsiveSize(10)
         },
         borderBox: {
             width: width - 50,
@@ -120,28 +125,28 @@ export default function ProjectSummaryContent() {
             borderWidth: 2,
             overflow: "hidden",
             backgroundColor: "#172038",
-            padding: 25,
-            gap: 5
+            padding: responsiveSize(25),
+            gap: responsiveSize(5)
         },
         mainBox: {
-            padding: 25,
-            gap: 5
+            padding: responsiveSize(25),
+            gap: responsiveSize(5)
         },
         progressDuration: {
             width: durationProgress,
-            height: 7,
+            height: responsiveSize(7),
             backgroundColor: "#63D0FF",
             borderRadius: 10,
         },
         progressCritical: {
             width: criticalProgress,
-            height: 7,
+            height: responsiveSize(7),
             backgroundColor: "#63D0FF",
             borderRadius: 10,
         },
         progressCompleted: {
             width: completedProgress,
-            height: 7,
+            height: responsiveSize(7),
             backgroundColor: "#63D0FF",
             borderRadius: 10,
         }
@@ -156,7 +161,7 @@ export default function ProjectSummaryContent() {
                         <GenerateIcon type="duration" />
                         <View style={styles.col}>
                             <Text style={styles.label}>Total Project Duration</Text>
-                            <Text style={styles.value}>{duration} Days</Text>
+                            <Text style={styles.value}> {doneDuration}/{duration} Days</Text>
                         </View>
                     </View>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -186,7 +191,7 @@ export default function ProjectSummaryContent() {
                 </View>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                     <LinearGradient colors={["#FF427E", "#F24B6F", "#FA0808"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.progressCritical} />
-                    <Text style={[styles.secondaryLabel, { alignContent: "center" }]}>{percentCritical !== 0 && (percentCritical + "%")}</Text>
+                    <Text style={[styles.secondaryLabel, { alignContent: "center" }]}>{percentCritical !== 0 ? (percentCritical + "%") : "0%"}</Text>
                 </View>
             </View>
             {/* task completed */}
@@ -200,7 +205,7 @@ export default function ProjectSummaryContent() {
                 </View>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                     <LinearGradient colors={["#1BE37F", "#51BD2A", "#4EA197"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.progressCompleted} />
-                    <Text style={[styles.secondaryLabel, { alignContent: "center" }]}>{percentCompleted !== 0 && (percentCompleted + "%")}</Text>
+                    <Text style={[styles.secondaryLabel, { alignContent: "center" }]}>{percentCompleted !== 0 ? (percentCompleted + "%") : "0%"}</Text>
                 </View>
             </View>
             {/* critical path */}
@@ -214,7 +219,7 @@ export default function ProjectSummaryContent() {
                     </View>
                     <Text style={styles.secondaryLabel}>Activities with zero float that determine project duration</Text>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center" }}>
-                       <CriticalPathFlow criticalPath={criticalPath} orientation="horizontal" type="flow"/>
+                        <CriticalPathFlow criticalPath={criticalPath} orientation="horizontal" type="flow" />
                     </View>
                 </LinearGradient>
             </View>

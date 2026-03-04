@@ -88,7 +88,7 @@ export function criticalPathMethod(activities: ActivityObjectType[]): ActivityWi
     activity.slack = activity.LS - activity.ES;
   });
 
-  // -----------------------------
+  
   // Debug logs
   // -----------------------------
   console.log("ES:", topo.map(a => a.ES));
