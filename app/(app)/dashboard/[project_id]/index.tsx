@@ -1,10 +1,11 @@
 import LoadingIndicator from "@/components/loadingIndicator";
 import { useSearchActivity } from "@/services/activity.service";
 import { criticalPathMethod, type ActivityWithTiming } from "@/utils/cpm";
+import { responsiveSize } from "@/utils/reponsiveSize";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams, type Href } from "expo-router";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { FlatList, ImageSourcePropType, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 
 interface Item {
@@ -25,7 +26,7 @@ const scrollHeader = (numActivities: number, duration: number, critical: number)
             borderRadius: 10,
             backgroundColor: "#172038",
             minHeight: 80,
-            minWidth: 110,
+            minWidth: 100,
             justifyContent: "center",
             alignItems: "center",
             gap: 5
@@ -73,11 +74,11 @@ export default function DashboardContent() {
     const { project_id } = useLocalSearchParams<{ project_id: string }>();
 
     //for logging
-    useEffect(() => {
-        if (project_id) {
-            console.log("Project Id in dashboard: ", project_id)
-        }
-    }, [project_id])
+    // useEffect(() => {
+    //     if (project_id) {
+    //         console.log("Project Id in dashboard: ", project_id)
+    //     }
+    // }, [project_id])
 
     const { activity, refetchByUser, isRefetchingByUser, isLoading } = useSearchActivity(parseInt(project_id))
 
@@ -89,6 +90,14 @@ export default function DashboardContent() {
     const duration = Math.abs(Math.max(...cpm.map(a => a.EF))) !== Infinity ? Math.max(...cpm.map(a => a.EF)) : 0
     const critical = cpm.filter((a => a.slack === 0)).length !== 0 ? cpm.filter((a => a.slack === 0)).length : 0
     const totalActivities = cpm.length !== 0 ? cpm.length : 0
+    
+    const doneDuration =Math.max(...cpm.filter(a => a.isDone).map(a => a.EF), 0)
+    const criticalActivityDone = cpm?.filter((item) => item.slack === 0 && item.isDone === true).length || 0
+    const allTaskDone = cpm?.filter((item) => item.isDone === true).length || 0
+
+    const currentDuration = Math.abs(doneDuration - duration)
+    const currentActivityDone = Math.abs(allTaskDone - totalActivities)
+    const currentCriticalActivityDone = Math.abs(criticalActivityDone - critical)
 
     const data: Item[] = [
         {
@@ -137,7 +146,7 @@ export default function DashboardContent() {
             sub_title: "View completed task",
             color: ["#1BE37F", "#51BD2A", "#4EA197"],
             icon: require("@/assets/images/dashboard_icons/task_completed.png"),
-            href: "/task"
+            href: "/dashboard/task-complete"
         },
     ]
 
@@ -158,12 +167,12 @@ export default function DashboardContent() {
         },
         text_title: {
             color: "white",
-            fontSize: 20,
+            fontSize: responsiveSize(18),
             textAlign: "center",
         },
         text_sub: {
             color: "#AEB7DA",
-            fontSize: 12,
+            fontSize: responsiveSize(11),
             textAlign: "center"
         },
         icon_container: {
@@ -175,7 +184,7 @@ export default function DashboardContent() {
     // renderer for flatlisst
     const navs = ({ item }: { item: Item }) => {
 
-        const isDisabled = item.id === 6
+        const isDisabled = item.id === null
 
         return (
             <View style={{ height: 215 }}>
@@ -217,11 +226,16 @@ export default function DashboardContent() {
                 data={data}
                 renderItem={navs}
                 keyExtractor={(item) => item.id.toString()}
-                ListHeaderComponent={scrollHeader(totalActivities,duration,critical)}
+                ListHeaderComponent={scrollHeader(currentActivityDone, currentDuration, currentCriticalActivityDone)}
                 numColumns={2}
-                columnWrapperStyle={{ gap: 15 }}
+                columnWrapperStyle={{gap: 15,justifyContent: "space-between" }}
                 showsVerticalScrollIndicator={false}
                 refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />}
+                contentContainerStyle={{
+                    paddingHorizontal: 10,
+                    rowGap: 0,
+                    columnGap: -10
+                }}
             />
         </View>
     )
