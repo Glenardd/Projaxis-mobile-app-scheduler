@@ -1,9 +1,8 @@
 import CriticalPathFlow from "@/components/criticalPathFlow";
-import FlowChart from "@/components/flowchart";
+import FlowChart from "@/components/flowchart/flowchart";
 import { useSearchActivity } from "@/services/activity.service";
 import { criticalPathMethod, type ActivityWithTiming } from "@/utils/cpm";
-import { responsiveImageSize } from "@/utils/reponsiveImageSize";
-import { responsiveFont } from "@/utils/responsiveFontSize";
+import { responsiveSize } from "@/utils/reponsiveSize";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { Fragment, useMemo, useState } from "react";
@@ -30,7 +29,7 @@ export default function PresentationContent() {
     const styles = StyleSheet.create({
         container: {
             flex: 1,
-            padding: 28,
+            padding: responsiveSize(28),
         },
         flowContainer: {
             flex: 1,
@@ -38,7 +37,7 @@ export default function PresentationContent() {
             justifyContent: "center"
         },
         text: {
-            fontSize: responsiveFont(12),
+            fontSize: responsiveSize(12),
             fontWeight: "600",
             color: "white"
         }
@@ -73,7 +72,7 @@ export default function PresentationContent() {
                 setSlide((prev) => Math.max(prev - 1, 0))
             }}>
                 <View style={{ justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 10 }}>
-                    <Image source={require("@/assets/images/arrow.png")} style={{ height: responsiveImageSize(35), width: responsiveImageSize(35), transform: [{ scaleX: -1 }] }} />
+                    <Image source={require("@/assets/images/arrow.png")} style={{ height: responsiveSize(35), width: responsiveSize(35), transform: [{ scaleX: -1 }] }} />
                     <Text style={styles.text}>Prev</Text>
                 </View>
             </Pressable>)}
@@ -83,7 +82,7 @@ export default function PresentationContent() {
             }}>
                 <View style={{ justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 10 }}>
                     <Text style={styles.text}>Next</Text>
-                    <Image source={require("@/assets/images/arrow.png")} style={{ height: responsiveImageSize(35), width: responsiveImageSize(35), transform: [{ scaleX: 1 }] }} />
+                    <Image source={require("@/assets/images/arrow.png")} style={{ height: responsiveSize(35), width: responsiveSize(35), transform: [{ scaleX: 1 }] }} />
                 </View>
             </Pressable>)}
         </View>
