@@ -20,7 +20,7 @@ export default function InfoLayout() {
             <Stack.Screen name="index" options={{
                 headerShown: true,
                 headerShadowVisible: false,
-                headerTitle: () => <ScreenHeader title={searchProject?.project_name!!} subtitle="Project dashboard" currentPage="Project Library" editable={true}/>,
+                headerTitle: () => <ScreenHeader id={project_id} title={searchProject?.project_name!!} subtitle="Project dashboard" currentPage="Project Library" editable={true}/>,
                 headerStyle: {
                     backgroundColor: "#070C27"
                 },
