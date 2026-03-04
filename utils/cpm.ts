@@ -67,7 +67,7 @@ export function criticalPathMethod(activities: ActivityObjectType[]): ActivityWi
         ? Math.max(...predecessors.map(p => p.EF))
         : 0;
 
-    activity.EF = activity.ES + (activity.time ?? 0);
+    activity.EF = activity.ES + (activity.expected ?? 0);
   });
 
   // Project duration
@@ -84,11 +84,11 @@ export function criticalPathMethod(activities: ActivityObjectType[]): ActivityWi
         ? Math.min(...successors.map(s => s.LS))
         : projectFinish;
 
-    activity.LS = activity.LF - (activity.time ?? 0);
+    activity.LS = activity.LF - (activity.expected ?? 0);
     activity.slack = activity.LS - activity.ES;
   });
 
-  // -----------------------------
+  
   // Debug logs
   // -----------------------------
   console.log("ES:", topo.map(a => a.ES));
