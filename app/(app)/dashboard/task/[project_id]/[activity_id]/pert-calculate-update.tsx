@@ -108,7 +108,7 @@ export default function ActivityEditPert() {
 
                 {/* pert */}
                 <View style={styles.expected_time}>
-                    <Text style={styles.label}>Expected Time</Text>
+                    <Text style={styles.label}>Duration/Time</Text>
                     <Text style={{ color: "white", fontSize: 50 }}>{!expected_time ? 0 : expected_time}d</Text>
                 </View>
 
