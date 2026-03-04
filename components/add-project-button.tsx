@@ -2,7 +2,7 @@ import { useInsertProject } from "@/services/projects.service";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import { Button, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, Dimensions, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import Indicator from "./message-indicator";
 
 export default function AddProjectButton() {
@@ -11,7 +11,7 @@ export default function AddProjectButton() {
     const [projectName, setProjectName] = useState("");
     const [inputEmpty, setInputEmpty] = useState(false);
 
-    const { updatedProject, isPending } = useInsertProject()// project mutate 
+    const { insertProject, isPending } = useInsertProject()// project mutate 
 
     return (
         <View>
@@ -54,7 +54,7 @@ export default function AddProjectButton() {
                                             return;
                                         }
 
-                                        updatedProject(projectName, {
+                                        insertProject(projectName, {
                                             onSuccess: () => {
                                                 setModalVisible(false)
                                                 setProjectName("")
@@ -77,7 +77,6 @@ export default function AddProjectButton() {
             <Indicator message="Saving" isPending={isPending} />
             <Pressable
                 onPress={() => {
-                    // router.push("/(app)/forms"
                     setModalVisible(true)
                     setProjectName("") // clear input
                     setInputEmpty(false)// clear warning
@@ -126,6 +125,8 @@ export default function AddProjectButton() {
     )
 }
 
+const {width} = Dimensions.get("screen")
+
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
         color: "#AEB7DA",
         height: 40,
         padding: 10,
-        minWidth: "40%",
+        width: width-60*2,
         backgroundColor: "#252A4A",
         borderRadius: 10,
     },
