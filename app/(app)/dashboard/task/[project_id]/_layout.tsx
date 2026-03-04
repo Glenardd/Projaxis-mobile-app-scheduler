@@ -17,12 +17,14 @@ export default function TaskLayout() {
 
     return (
         <Stack screenOptions={{ headerShown: false }}>
+
+            {/* dashboard */}
             <Stack.Screen
                 name="index"
                 options={{
                     headerShown: true,
                     contentStyle: { backgroundColor: "#070C27" },
-                    headerTitle: () => <ScreenHeader title="Activity Input" subtitle="Configure projects with PERT estimates" currentPage="Project Dashboard" editable={false} />,
+                    headerTitle: () => <ScreenHeader title="Activity Input" subtitle="Configure project activities" currentPage="Project Dashboard" editable={false} />,
                     headerStyle: {
                         backgroundColor: "#070C27"
                     },
@@ -34,8 +36,29 @@ export default function TaskLayout() {
                     animation:"simple_push"
                 }}
             />
+
+            {/* pert calculate */}
             <Stack.Screen
-                name="form"
+                name="pert-calculate-form"
+                options={{
+                    headerShown: true,
+                    contentStyle: { backgroundColor: "#070C27" },
+                    headerTitle: () => <ScreenHeader title="Add Activity" subtitle="Add new activity to the current project" currentPage="Activity input" editable={false} />,
+                    headerStyle: {
+                        backgroundColor: "#070C27"
+                    },
+                    headerTintColor: '#fff',
+                    headerTitleStyle: {
+                        fontWeight: 'bold',
+                    },
+                    headerBackVisible:false,
+                    animation:"simple_push"
+                }}
+            />
+
+            {/* duration input */}
+            <Stack.Screen
+                name="duration-form"
                 options={{
                     headerShown: true,
                     contentStyle: { backgroundColor: "#070C27" },
