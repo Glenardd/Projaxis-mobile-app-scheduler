@@ -16,7 +16,20 @@ export default function ActivityEditLayout() {
 
     return (
         <Stack screenOptions={{ headerShown: false, animation: "none" }}>
-            <Stack.Screen name="index" options={{
+            <Stack.Screen name="pert-calculate-update" options={{
+                headerShown: true,
+                contentStyle: { backgroundColor: "#070C27" },
+                headerTitle: () => <ScreenHeader title="Edit Activity" subtitle="Edit Activity" currentPage="Activity Input" editable={false} />,
+                headerStyle: {
+                    backgroundColor: "#070C27"
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                    fontWeight: 'bold',
+                },
+                headerBackVisible: false,
+            }} />
+            <Stack.Screen name="duration-update" options={{
                 headerShown: true,
                 contentStyle: { backgroundColor: "#070C27" },
                 headerTitle: () => <ScreenHeader title="Edit Activity" subtitle="Edit Activity" currentPage="Activity Input" editable={false} />,
