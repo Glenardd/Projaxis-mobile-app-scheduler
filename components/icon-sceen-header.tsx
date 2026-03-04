@@ -1,3 +1,4 @@
+import { responsiveSize } from "@/utils/reponsiveSize";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
@@ -20,8 +21,8 @@ export default function LogoTitle({ image_url, username }: User) {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
-            width: 55,
-            height: 55,
+            width: responsiveSize(55),
+            height: responsiveSize(55),
             borderRadius: 10,
             justifyContent: "center",
             alignItems: "center",
@@ -51,7 +52,7 @@ export default function LogoTitle({ image_url, username }: User) {
           >
             <View style={menu.menuContainer}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <Image source={{ uri: image_url }} style={{ height: 50, width: 50, borderRadius: 50 }} />
+                <Image source={{ uri: image_url }} style={{ height: responsiveSize(50), width: responsiveSize(50), borderRadius: 50 }} />
                 <Text style={{ fontSize: 14, fontWeight: "600" }}>{username}</Text>
               </View>
               <SignOutButton />
@@ -62,7 +63,7 @@ export default function LogoTitle({ image_url, username }: User) {
       <Pressable
         onPress={() => setModalVisible(true)}
       >
-        <Image source={{ uri: image_url }} style={{ height: 50, width: 50, borderRadius: 50 }} />
+        <Image source={{ uri: image_url }} style={{ height: responsiveSize(50), width: responsiveSize(50), borderRadius: 50 }} />
       </Pressable>
     </View >
   )
@@ -73,14 +74,14 @@ const header = StyleSheet.create({
   row_sm: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10
+    gap: responsiveSize(10)
   },
   row_lg: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingBottom: 15,
-    paddingHorizontal: 15,
+    paddingBottom: responsiveSize(15),
+    paddingHorizontal: responsiveSize(15),
   },
   col: {
     flexDirection: "column",
@@ -91,11 +92,11 @@ const header = StyleSheet.create({
 
 const text = StyleSheet.create({
   head: {
-    fontSize: 30,
+    fontSize: responsiveSize(30),
     color: "white"
   },
   secondHead: {
-    fontSize: 15,
+    fontSize: responsiveSize(15),
     color: "#AEB7DA"
   }
 });
@@ -104,7 +105,7 @@ const menu = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end", // pushes modal to bottom
+    justifyContent: "flex-end", 
   },
 
   menuContainer: {
@@ -112,8 +113,8 @@ const menu = StyleSheet.create({
     backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 30,
-    paddingTop: 10,
+    padding: responsiveSize(30),
+    paddingTop: responsiveSize(10),
     alignItems: "center",
     justifyContent: "space-between",
     flexDirection: "row",
@@ -121,6 +122,6 @@ const menu = StyleSheet.create({
 
   text: {
     color: "black",
-    fontSize: 18,
+    fontSize: responsiveSize(18),
   },
 });
