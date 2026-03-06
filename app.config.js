@@ -1,7 +1,7 @@
 module.exports = {
   expo: {
     jsEngine: "hermes",
-    name: "projaxis",
+    name: "Projaxis",
     slug: "projaxis",
     version: "1.0.0",
     orientation: "portrait",
