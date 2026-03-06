@@ -135,7 +135,7 @@ export default function CriticalPathFlow({
                 fontSize: responsiveSize(16),
               }}
             >
-              {a.time} days
+              {a.expected} days
             </Text>
           </LinearGradient>
         </View>
