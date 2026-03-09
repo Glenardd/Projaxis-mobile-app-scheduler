@@ -172,6 +172,7 @@ const useInsertActivity = (onSuccessCallBack?: () => void) => {
             .from("activity")
             .select("label")
             .in("activity_name", predecessors)
+            .eq("project_id", project_id)
 
         const predecessorsId =
             predecessorData?.map((pred) => pred.label) ?? []
@@ -267,7 +268,8 @@ const useUpdateActivity = (id: number, onSuccessCallBack?: () => void) => {
         const { data: predecessorLabels } = await supabase
             .from("activity")
             .select("label")
-            .in("activity_name", predecessors);
+            .in("activity_name", predecessors)
+            .eq("project_id", project_id)
 
         const predecessorsAlphabet = predecessorLabels?.map((pred) => pred.label) ?? [];
 
@@ -450,6 +452,7 @@ const useInsertActivityDuration = (onSuccessCallBack?: () => void) => {
             .from("activity")
             .select("label")
             .in("activity_name", predecessors)
+            .eq("project_id", project_id)
 
         const predecessorsId =
             predecessorData?.map((pred) => pred.label) ?? []
