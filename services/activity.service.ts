@@ -53,6 +53,18 @@ interface InsertDuration {
     isDone?: boolean
 }
 
+// adds label 
+const numberToLabel = (num: number) => {
+    let label = "";
+
+    while (num >= 0) {
+        label = String.fromCharCode((num % 26) + 65) + label;
+        num = Math.floor(num / 26) - 1;
+    }
+
+    return label;
+}
+
 //search the activity by project here
 const useSearchActivity = (project_id: number): ActivityTableType => {
 
@@ -152,10 +164,6 @@ const useInsertActivity = (onSuccessCallBack?: () => void) => {
 
     const insertActivity = async (InsertPayload: InsertPayload) => {
 
-        const alphabet = Array.from({ length: 26 }, (_, i) => ({
-            label: String.fromCharCode(65 + i) // A-Z
-        }))
-
         const {
             activity_name,
             optimistic,
@@ -183,18 +191,8 @@ const useInsertActivity = (onSuccessCallBack?: () => void) => {
             .select("label")
             .eq("project_id", project_id)
 
-        const usedLabels = new Set(
-            activity?.map((obj) => obj.label) ?? []
-        )
-
-        //find first available label
-        const availableLabel = alphabet.find(
-            (l) => !usedLabels.has(l.label)
-        )
-
-        if (!availableLabel) {
-            throw new Error("No available labels left (A-Z limit reached)")
-        }
+        const nextIndex = activity?.length ?? 0
+        const availableLabel = numberToLabel(nextIndex)
 
         const payload = {
             activity_name: activity_name,
@@ -204,7 +202,7 @@ const useInsertActivity = (onSuccessCallBack?: () => void) => {
             project_id: project_id,
             predecessor: predecessorsId,
             expected: expected,
-            label: availableLabel.label,
+            label: availableLabel,
             isDone: isDone
         }
 
@@ -337,7 +335,7 @@ const useDeleteActivity = (project_id: number) => {
                 .from("activity")
                 .select("id, label, predecessor")
                 .eq("project_id", project_id)
-                .order("label");
+                .order("id");
 
         if (fetchError) throw fetchError;
 
@@ -368,7 +366,7 @@ const useDeleteActivity = (project_id: number) => {
                     (p: string) => p !== deletedLabel
                 );
 
-                
+
                 deletedPredecessors.forEach((p: string) => {
                     if (!predecessors.includes(p)) {
                         predecessors.push(p);
@@ -380,14 +378,10 @@ const useDeleteActivity = (project_id: number) => {
         }
 
         // relabel after deletion
-        const alphabet = Array.from({ length: 26 }, (_, i) =>
-            String.fromCharCode(65 + i)
-        );
-
         const labelMap = new Map<string, string>();
 
         remainingActivities.forEach((act, index) => {
-            labelMap.set(act.label, alphabet[index]);
+            labelMap.set(act.label, numberToLabel(index));
         });
 
         // update db base on label map
@@ -435,10 +429,6 @@ const useInsertActivityDuration = (onSuccessCallBack?: () => void) => {
 
     const insertActivityDuration = async (InsertDuration: InsertDuration) => {
 
-        const alphabet = Array.from({ length: 26 }, (_, i) => ({
-            label: String.fromCharCode(65 + i) // A-Z
-        }))
-
         const {
             activity_name,
             project_id,
@@ -463,25 +453,15 @@ const useInsertActivityDuration = (onSuccessCallBack?: () => void) => {
             .select("label")
             .eq("project_id", project_id)
 
-        const usedLabels = new Set(
-            activity?.map((obj) => obj.label) ?? []
-        )
-
-        //find first available label
-        const availableLabel = alphabet.find(
-            (l) => !usedLabels.has(l.label)
-        )
-
-        if (!availableLabel) {
-            throw new Error("No available labels left (A-Z limit reached)")
-        }
+        const nextIndex = activity?.length ?? 0
+        const availableLabel = numberToLabel(nextIndex)
 
         const payload = {
             activity_name: activity_name,
             project_id: project_id,
             predecessor: predecessorsId,
             expected: expected,
-            label: availableLabel.label,
+            label: availableLabel,
             isDone: isDone
         }
 
