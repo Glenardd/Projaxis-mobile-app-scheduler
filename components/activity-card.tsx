@@ -5,13 +5,13 @@ import { shortenText } from "@/utils/textResponsive"
 import Feather from "@expo/vector-icons/Feather"
 import Octicons from '@expo/vector-icons/Octicons'
 import { LinearGradient } from "expo-linear-gradient"
-import { useState } from "react"
+import { memo, useState } from "react"
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import ActivityMenuDropdown from "./activity-menu-dropdown"
 import ScheduleInfo from "./flowchart/schecduleInfo"
 import Indicator from "./message-indicator"
 
-export default function ActivityContainer({
+function ActivityContainer({
     item,
     project_id,
     isComplete,
@@ -217,3 +217,5 @@ export default function ActivityContainer({
         </View>
     )
 }
+
+export default memo(ActivityContainer)
