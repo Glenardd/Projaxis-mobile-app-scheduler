@@ -38,7 +38,9 @@ export default function ActivityEditPert() {
 
     const [isFocus, setIsFocus] = useState(false);
 
-    const [predecessor, setPredecessor] = useState<string[]>([])
+    const [selected, setSelected] = useState<string[]>([]) // selects the id of the predecessor
+    const [predecessor, setPredecessor] = useState<string[]>([]) // sets the final predecessor
+
     const [activityName, setActivityName] = useState("")
     const [optimistic, setOptimistic] = useState("")
     const [mostLikely, setMostLikely] = useState("")
@@ -85,7 +87,7 @@ export default function ActivityEditPert() {
         setOptimistic(optimistic_ != null ? String(optimistic_) : "")
         setMostLikely(most_likely != null ? String(most_likely) : "")
         setPessimistic(pessimistic_ != null ? String(pessimistic_) : "")
-        setPredecessor(predecessor_content ? predecessor_content.map(item => item.value) : [])
+        setSelected(predecessor_content ? predecessor_content.map(item => item.value) : [])
 
     }, [activityById])
 
@@ -145,7 +147,7 @@ export default function ActivityEditPert() {
                                 valueField="value"
                                 placeholder={isFocus ? "..." : "Select"}
                                 renderItem={renderItem}
-                                value={predecessor}
+                                value={selected}
                                 onChange={(item) => {
                                     console.log("Items is: ", item)
                                     if (item === null) {
@@ -155,7 +157,17 @@ export default function ActivityEditPert() {
                                         return setPredecessor([])
                                     } else {
                                         setInputEmpty_predecessor(false)
-                                        return setPredecessor(item)
+
+                                        const numericItems = item.map(Number)
+
+                                        const selectedNames = searchedActivity
+                                            ?.filter(activity => numericItems.includes(activity.id))  // no String() conversion, both are numbers
+                                            .map(activity => activity.activity_name) || []
+
+                                        console.log(selectedNames)
+                                        setPredecessor(selectedNames)
+
+                                        return setSelected(item)
                                     }
                                 }}
                                 onFocus={() => setIsFocus(true)}

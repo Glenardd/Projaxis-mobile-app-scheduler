@@ -10,8 +10,9 @@ import { MultiSelect } from "react-native-element-dropdown";
 import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
-    label: string,
-    value: string
+    label: string
+    value: number
+    name: string
 }
 
 export default function AddTaskContentPertCalculate() {
@@ -23,7 +24,9 @@ export default function AddTaskContentPertCalculate() {
 
     const [isFocus, setIsFocus] = useState(false);
 
-    const [predecessor, setPredecessor] = useState<string[]>([]);
+    const [selected, setSelected] = useState<string[]>([]) // selects the id of the predecessor
+    const [predecessor, setPredecessor] = useState<string[]>([]) // sets the final predecessor
+
     const [activityName, setActivityName] = useState("")
     const [optimistic, setOptimistic] = useState("")
     const [mostLikely, setMostLikely] = useState("")
@@ -41,7 +44,8 @@ export default function AddTaskContentPertCalculate() {
 
     const data = data_?.map((item) => ({
         label: item.label,
-        value: item.activity_name
+        value: item.id,
+        name: item.activity_name
     })) || []
 
     const isPredecessor = data_?.map((item) => {
@@ -50,11 +54,11 @@ export default function AddTaskContentPertCalculate() {
 
     const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
 
-    const renderItem = ({ value, label }: PredecessorsTypes) => {
+    const renderItem = ({ value, name, label }: PredecessorsTypes) => {
         return (
             <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
                 <Text style={[{ color: "#59accfff" }, styles.item]}>{label}</Text>
-                <Text style={styles.item}>{value}</Text>
+                <Text style={styles.item}>{name}</Text>
             </View>
         );
     };
@@ -63,7 +67,7 @@ export default function AddTaskContentPertCalculate() {
         <ScrollView
             style={styles.container}
             contentContainerStyle={{
-                paddingBottom: 50, 
+                paddingBottom: 50,
             }}
         >
             <View style={styles.column}>
@@ -94,7 +98,7 @@ export default function AddTaskContentPertCalculate() {
 
                 {/* Predecessor select */}
                 <View style={styles.fieldContainer}>
-                    {isPredecessor  && (
+                    {isPredecessor && (
                         <>
                             <Text style={styles.label}>Predecessor</Text>
                             <MultiSelect
@@ -106,7 +110,7 @@ export default function AddTaskContentPertCalculate() {
                                 valueField="value"
                                 placeholder={isFocus ? "..." : "Select"}
                                 renderItem={renderItem}
-                                value={predecessor}
+                                value={selected}
                                 onChange={(item) => {
                                     if (item === null) {
                                         console.log(item)
@@ -116,7 +120,17 @@ export default function AddTaskContentPertCalculate() {
                                         return setPredecessor([])
                                     } else {
                                         setInputEmpty_predecessor(false)
-                                        return setPredecessor(item)
+
+                                        const numericItems = item.map(Number)
+
+                                        const selectedNames = data_
+                                            ?.filter(activity => numericItems.includes(activity.id))  // no String() conversion, both are numbers
+                                            .map(activity => activity.activity_name) || []
+
+                                        console.log(selectedNames)
+                                        setPredecessor(selectedNames)
+
+                                        return setSelected(item)
                                     }
                                 }}
                                 onFocus={() => setIsFocus(true)}

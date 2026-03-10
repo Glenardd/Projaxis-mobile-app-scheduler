@@ -10,7 +10,7 @@ import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
     label: string
-    value: string | number
+    value: number
     name: string
 }
 
@@ -23,7 +23,9 @@ export default function AddTaskContentDuration() {
 
     const [isFocus, setIsFocus] = useState(false);
 
-    const [predecessor, setPredecessor] = useState<string[]>([]);
+    const [selected, setSelected] = useState<string[]>([]) // selects the id of the predecessor
+    const [predecessor, setPredecessor] = useState<string[]>([]) // sets the final predecessor
+
     const [activityName, setActivityName] = useState("")
     const [duration, setDuration] = useState("")
 
@@ -95,17 +97,27 @@ export default function AddTaskContentDuration() {
                                 valueField="value"
                                 placeholder={isFocus ? "..." : "Select"}
                                 renderItem={renderItem}
-                                value={predecessor}
+                                value={selected}
                                 onChange={(item) => {
                                     if (item === null) {
-                                        console.log(item)
                                         setIsFocus(false)
                                         setInputEmpty_predecessor(true)
+                                        setPredecessor([])
 
-                                        return setPredecessor([])
+                                        return setSelected([])
                                     } else {
                                         setInputEmpty_predecessor(false)
-                                        return setPredecessor(item)
+
+                                        const numericItems = item.map(Number)
+
+                                        const selectedNames = data_
+                                            ?.filter(activity => numericItems.includes(activity.id))  // no String() conversion, both are numbers
+                                            .map(activity => activity.activity_name) || []
+
+                                        console.log(selectedNames)
+                                        setPredecessor(selectedNames)
+
+                                        return setSelected(item)
                                     }
                                 }}
                                 onFocus={() => setIsFocus(true)}

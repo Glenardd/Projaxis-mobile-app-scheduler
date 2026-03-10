@@ -8,8 +8,9 @@ import { MultiSelect } from "react-native-element-dropdown";
 import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
-    label: string,
-    value: string
+    label: string
+    value: string | number
+    name: string
 }
 
 export default function ActivityEditDuration() {
@@ -35,7 +36,9 @@ export default function ActivityEditDuration() {
 
     const [isFocus, setIsFocus] = useState(false);
 
-    const [predecessor, setPredecessor] = useState<string[]>([])
+    const [selected, setSelected] = useState<string[]>([]) // selects the id of the predecessor
+    const [predecessor, setPredecessor] = useState<string[]>([]) // sets the final predecessor
+
     const [activityName, setActivityName] = useState("")
     const [duration, setDuration] = useState("")
 
@@ -47,7 +50,8 @@ export default function ActivityEditDuration() {
     const activity_predecessor = searchedActivity?.filter((item) => predecessor_?.includes(item.label))
     const predecessor_content = activity_predecessor?.map((item) => ({
         label: item.label,
-        value: item.activity_name
+        value: item.id,
+        name: item.activity_name
     }))
     // console.log("Activity Predecessor at [activity_id]/index", predecessor_content)
 
@@ -72,9 +76,9 @@ export default function ActivityEditDuration() {
         if (!activityById) return
         setActivityName(activity_name_ ?? "")
         setDuration(duration_ != null ? String(duration_) : "")
-        setPredecessor(predecessor_content ? predecessor_content.map(item => item.value) : [])
+        setSelected(predecessor_content ? predecessor_content.map(item => item.name) : [])
 
-    }, [activityById])
+    }, [activityById, predecessor_content])
 
     const renderItem = ({ value, label }: PredecessorsTypes) => {
         return (
@@ -124,7 +128,7 @@ export default function ActivityEditDuration() {
                                 valueField="value"
                                 placeholder={isFocus ? "..." : "Select"}
                                 renderItem={renderItem}
-                                value={predecessor}
+                                value={selected}
                                 onChange={(item) => {
                                     console.log("Items is: ", item)
                                     if (item === null) {
@@ -134,7 +138,17 @@ export default function ActivityEditDuration() {
                                         return setPredecessor([])
                                     } else {
                                         setInputEmpty_predecessor(false)
-                                        return setPredecessor(item)
+
+                                        const numericItems = item.map(Number)
+
+                                        const selectedNames = searchedActivity
+                                            ?.filter(activity => numericItems.includes(activity.id))  // no String() conversion, both are numbers
+                                            .map(activity => activity.activity_name) || []
+
+                                        console.log(selectedNames)
+                                        setPredecessor(selectedNames)
+
+                                        return setSelected(item)
                                     }
                                 }}
                                 onFocus={() => setIsFocus(true)}
