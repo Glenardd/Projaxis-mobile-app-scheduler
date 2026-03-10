@@ -9,8 +9,9 @@ import { MultiSelect } from "react-native-element-dropdown";
 import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
-    label: string,
-    value: string
+    label: string
+    value: string | number
+    name: string
 }
 
 export default function AddTaskContentDuration() {
@@ -36,18 +37,19 @@ export default function AddTaskContentDuration() {
 
     const data = data_?.map((item) => ({
         label: item.label,
-        value: item.activity_name
+        value: item.id,           // unique identifier — NOT activity_name
+        name: item.activity_name
     })) || []
 
     const isPredecessor = data_?.map((item) => {
         return item.predecessor ?? []
     }).length !== 0
 
-    const renderItem = ({ value, label }: PredecessorsTypes) => {
+    const renderItem = ({ value, label, name }: PredecessorsTypes) => {
         return (
             <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
                 <Text style={[{ color: "#59accfff" }, styles.item]}>{label}</Text>
-                <Text style={styles.item}>{value}</Text>
+                <Text style={styles.item}>{name}</Text>
             </View>
         );
     };
@@ -203,7 +205,7 @@ export default function AddTaskContentDuration() {
                             setPredecessor([])
                             setActivityName("")
                             setDuration("")
-                            
+
                             setInputEmpty_activityName(false)
                             setInputEmpty_predecessor(false)
                             setInputEmpty_duration(false)
