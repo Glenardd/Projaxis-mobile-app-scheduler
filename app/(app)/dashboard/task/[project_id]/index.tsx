@@ -1,10 +1,10 @@
 import ActivityContainer from "@/components/activity-card";
 import AddActivityButton from "@/components/add-activity-button";
 import LoadingIndicator from "@/components/loadingIndicator";
-import { useSearchActivity } from "@/services/activity.service";
+import { ActivityObjectType, useSearchActivity } from "@/services/activity.service";
 import { criticalPathMethod } from "@/utils/cpm";
 import { useLocalSearchParams } from "expo-router";
-import { FlatList, RefreshControl, Text, View } from "react-native";
+import { RefreshControl, Text, View, VirtualizedList } from "react-native";
 
 export default function TaskSearch() {
 
@@ -14,15 +14,22 @@ export default function TaskSearch() {
     const { activity: data, isRefetchingByUser, refetchByUser, isLoading } = useSearchActivity(parseInt(project_id))
 
     // sort data when
-    const sortedData = data?.sort((a, b) => a.label.localeCompare(b.label))
+    const sortedData = data?.sort((a, b) => {
+        if (a.label.length !== b.label.length) {
+            return a.label.length - b.label.length
+        }
+        return a.label.localeCompare(b.label)
+    })
+
     const onGoingTask = sortedData?.filter((data) => data.isDone === false)
     const cpm = criticalPathMethod(sortedData || []);
 
     return isLoading ? <LoadingIndicator /> : (
         <>
-            <FlatList
+            <VirtualizedList
+                initialNumToRender={15}
                 data={onGoingTask}
-                renderItem={({ item }) => (
+                renderItem={({ item }: {item: ActivityObjectType}) => (
                     <ActivityContainer
                         item={item}
                         project_id={project_id}
@@ -32,6 +39,9 @@ export default function TaskSearch() {
                 )}
                 keyExtractor={(item) => item.id.toString()}
                 showsVerticalScrollIndicator={false}
+                getItemCount={(data) => (data ? data.length : 0)}
+                getItem={(data, index) => data[index]}
+
                 ListHeaderComponent={<AddActivityButton project_id={project_id} />}
                 refreshControl={
                     <RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />
