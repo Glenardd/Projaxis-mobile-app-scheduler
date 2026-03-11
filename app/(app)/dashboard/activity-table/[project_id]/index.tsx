@@ -12,12 +12,18 @@ export default function TaskContent() {
     const { project_id } = useLocalSearchParams<{ project_id: string }>()
     const { activity, isLoading, isRefetchingByUser, refetchByUser } = useSearchActivity(parseInt(project_id))
 
-    const data : ActivityWithTiming[] = useMemo(() => {
+    const data: ActivityWithTiming[] = useMemo(() => {
         if (!activity) return [];
         return criticalPathMethod(activity) || [];
     }, [activity]);
 
-    const sortedData = data?.sort((a, b) => a.label.localeCompare(b.label))
+    // sort data
+    const sortedData = data?.sort((a, b) => {
+        if (a.label.length !== b.label.length) {
+            return a.label.length - b.label.length
+        }
+        return a.label.localeCompare(b.label)
+    })
 
     // for logging
     // console.log(activity)
@@ -88,12 +94,12 @@ export default function TaskContent() {
         )
     };
 
-    return isLoading ? <LoadingIndicator /> :(
+    return isLoading ? <LoadingIndicator /> : (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <FlatList
                 data={sortedData}
                 renderItem={activity_container}
-                refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser}/>}
+                refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />}
                 keyExtractor={(item) => item ? item?.id.toString() : ""}
                 ItemSeparatorComponent={() => <View style={{ height: responsiveSize(15) }} />}
                 contentContainerStyle={{

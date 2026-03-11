@@ -13,7 +13,7 @@ export default function TaskSearch() {
     //searched activity
     const { activity: data, isRefetchingByUser, refetchByUser, isLoading } = useSearchActivity(parseInt(project_id))
 
-    // sort data when
+    // sort data
     const sortedData = data?.sort((a, b) => {
         if (a.label.length !== b.label.length) {
             return a.label.length - b.label.length
