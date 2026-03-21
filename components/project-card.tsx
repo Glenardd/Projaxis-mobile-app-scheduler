@@ -88,7 +88,6 @@ export default function ProjectCard({ item }: { item: ProjectObjectType }) {
                     <View style={{ gap: 5 }}>
                         <TouchableOpacity
                             onPress={() => {
-                                console.log(item.project_name)
                                 router.push({
                                     pathname: "/(app)/dashboard/[project_id]",
                                     params: { project_id: item.id }
@@ -167,7 +166,7 @@ export default function ProjectCard({ item }: { item: ProjectObjectType }) {
                 />
                 <Indicator message="Copying" isPending={isDuplicating} />
                 <Buttons onPress={() => {
-                    console.log(project_id)
+                    // console.log(project_id)
                     setConfirmDelete(true)
                 }}>
                     <MaterialIcons name="delete-outline" size={responsiveSize(24)} color="#AEB7DA" />
