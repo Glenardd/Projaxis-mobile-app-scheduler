@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     },
     values: {
         color: "white",
-        fontSize: responsiveSize(35)
+        fontSize: responsiveSize(24)
     },
     subText: {
         color: "#AEB7DA",
