@@ -72,7 +72,7 @@ export default function ActivityEditPert() {
         : [];
 
     // logging
-    activityOptions.map((item) => console.log({ label: item.label, value: item.value }))
+    // activityOptions.map((item) => console.log({ label: item.label, value: item.value }))
 
     // will check if it has predecessor available
     const isPredecessor = predecessor_?.map((item) => {
