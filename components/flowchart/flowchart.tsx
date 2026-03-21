@@ -1,7 +1,6 @@
-import { type ActivityObjectType } from "@/services/activity.service";
 import { type ActivityWithTiming } from "@/utils/cpm";
 import { responsiveSize } from "@/utils/reponsiveSize";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -11,8 +10,8 @@ import Animated, {
 import Svg from "react-native-svg";
 import LoadingIndicator from "../loadingIndicator";
 
-import { PositionedTask } from "@/utils/flowchartTypes";
 import Arrow from "./arrow";
+import computeLayout from "./computeLayout";
 import Node from "./node";
 import ScheduleInfo from "./schecduleInfo";
 
@@ -89,13 +88,17 @@ export default function FlowChart(
 
   const { width, height } = Dimensions.get("screen")
 
-  const NODE_W = 0.26 * width
-  const NODE_H = 0.07 * height
-  const ROW_GAP = 0.20 * height
-  const COL_GAP = 0.30 * width
-  const PAD_Y = 0.2 * height
-  const PAD_X = 0.5 * width
-  const INIT_SCALE = width < 375 ? 0.7 : width < 768 ? 0.8 : 1.0
+  const layout = useMemo(() => ({
+    NODE_W: 0.26 * width,
+    NODE_H: 0.07 * height,
+    ROW_GAP: 0.20 * height,
+    COL_GAP: 0.30 * width,
+    PAD_Y: 0.2 * height,
+    PAD_X: 0.5 * width,
+    INIT_SCALE: width < 375 ? 0.7 : width < 768 ? 0.8 : 1.0
+  }), [width, height])
+
+  const { NODE_W, NODE_H, ROW_GAP, COL_GAP, PAD_Y, PAD_X, INIT_SCALE } = layout
 
   // x axis
   const positionX = useSharedValue(0)
@@ -110,32 +113,33 @@ export default function FlowChart(
   const scale = useSharedValue(INIT_SCALE)
   const savedScale = useSharedValue(1)
 
-  const panGesture = Gesture.Pan()
+  const panGesture = useMemo(() => Gesture.Pan()
     .minDistance(10)
     .onUpdate((e) => {
+      'worklet'
       positionX.value = offsetX.value + e.translationX
       positionY.value = offsetY.value + e.translationY
     })
-    .onEnd((e) => {
+    .onEnd(() => {
+      'worklet'
       offsetX.value = positionX.value
       offsetY.value = positionY.value
 
       hasMovedX.value = true
       hasMovedY.value = true
-    })
+    }), [])
 
-  const pinchGesture = Gesture.Pinch()
+  const pinchGesture = useMemo(() => Gesture.Pinch()
     .onUpdate((e) => {
-      scale.value = savedScale.value * e.scale
+      'worklet'
+      scale.value = Math.min(Math.max(savedScale.value * e.scale, 0.3), 3)
     })
     .onEnd(() => {
+      'worklet'
       savedScale.value = scale.value
-
       hasMovedX.value = true
       hasMovedY.value = true
-    })
-
-  const nativeScroll = Gesture.Native()
+    }), [])
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -150,76 +154,40 @@ export default function FlowChart(
     pointerEvents: hasMovedX.value || hasMovedY.value ? 'auto' : 'none',
   }));
 
-  const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture, nativeScroll)
+  const composedGesture = useMemo(
+    () => Gesture.Simultaneous(panGesture, pinchGesture),
+    [panGesture, pinchGesture]
+  )
 
   /* ----------------------- diagrams ---------------------------- */
 
-  const computeLayout = (tasks: ActivityObjectType[], screenWidth: number): PositionedTask[] => {
-    const taskMap = new Map(tasks.map((t) => [t.label, t]))
-
-    const depthMap = new Map<string, number>()
-
-    const getDepth = (label: string): number => {
-      if (depthMap.has(label)) return depthMap.get(label)!;
-      const task = taskMap.get(label);
-      if (!task || task.predecessor.length === 0) {
-        depthMap.set(label, 0)
-        return 0
-      }
-      const depth = Math.max(...task.predecessor.map((p) => getDepth(p))) + 1
-      depthMap.set(label, depth)
-      return depth
-    }
-
-    tasks.forEach((t) => {
-      getDepth(t.label)
-    })
-
-    const levels = new Map<number, string[]>()
-    depthMap.forEach((depth, label) => {
-      if (!levels.has(depth)) levels.set(depth, [])
-      levels.get(depth)!.push(label)
-    })
-
-    const centerX = PAD_X + screenWidth / 2
-
-    return tasks.map((task) => {
-      const depth = depthMap.get(task.label)!
-      const levelTasks = levels.get(depth)!
-      const index = levelTasks.indexOf(task.label);
-      const count = levelTasks.length;
-
-      const totalSpan = (count - 1) * COL_GAP
-      const startX = centerX - totalSpan / 2
-
-      return {
-        ...task,
-        depth,
-        row: index,
-        x: startX + index * COL_GAP,
-        y: PAD_Y + depth * ROW_GAP + NODE_H / 2,
-      };
-    });
-  }
-
   const positioned = useMemo(() => {
-    return computeLayout(data, width);
-  }, [data, width]);
+    return computeLayout(data, width, { NODE_W, NODE_H, ROW_GAP, COL_GAP, PAD_Y, PAD_X })
+  }, [data, width, NODE_W, NODE_H, ROW_GAP, COL_GAP, PAD_Y, PAD_X])
+
+  // Map data by label for correct slack lookup
+  const dataMap = useMemo(() => new Map(data.map(d => [d.label, d])), [data])
 
   const posMap = useMemo(
     () => new Map(positioned.map((t) => [t.label, t])),
     [positioned]
   );
 
-  const maxY = Math.max(...positioned.map((t) => t.y)) + NODE_H / 2 + PAD_Y;
-  const canvasH = maxY;
+  const MAX_CANVAS = 4096  // Android safe bitmap limit
+
+  const canvasH = useMemo(() => {
+    const h = Math.max(...positioned.map(t => t.y)) + NODE_H / 2 + PAD_Y
+    return Math.min(h, MAX_CANVAS)  // ✅ cap it
+  }, [positioned])
+
+  const canvasW = useMemo(() => {
+    if (positioned.length === 0) return
+    return Math.max(...positioned.map(t => t.x)) + NODE_W + PAD_X
+  }, [positioned])
 
   // build edges with correct slack lookup by label
   const edges = useMemo(() => {
     const result: React.ReactNode[] = [];
-
-    // Map data by label for correct slack lookup
-    const dataMap = new Map(data.map(d => [d.label, d]));
 
     positioned.forEach((task) => {
       task.predecessor.forEach((predLabel) => {
@@ -248,6 +216,13 @@ export default function FlowChart(
 
     return result;
   }, [positioned, data]);
+
+  const handleNodePress = useCallback((task: ActivityWithTiming) => {
+    setNodeData(task)
+    setModalVisible(true)
+  }, [])
+
+  const handleModalClose = useCallback(() => setModalVisible(v => !v), [])
 
   return isLoading ? <LoadingIndicator /> : (
     <>
@@ -285,7 +260,7 @@ export default function FlowChart(
 
         <GestureDetector gesture={composedGesture}>
           <Animated.View style={[animatedStyle, { alignItems: "center", justifyContent: "center" }]}>
-            <Svg width={width * 2} height={canvasH}>
+            <Svg width={canvasW} height={canvasH}>
 
               {/* Edges */}
               {edges}
@@ -293,10 +268,7 @@ export default function FlowChart(
               {/* Nodes */}
               {positioned.map((task, i) => (
                 <Node
-                  onPress={(task) => {
-                    setNodeData(task)
-                    setModalVisible(true)
-                  }}
+                  onPress={handleNodePress}
                   key={task.label}
                   task={task}
                   data={data[i]}
@@ -304,15 +276,14 @@ export default function FlowChart(
                   NODE_H={NODE_H}
                 />
               ))}
-
-              <ScheduleInfo
-                isVisible={modalVisible}
-                onClose={() => setModalVisible(!modalVisible)}
-                nodeData={nodeData}
-              />
             </Svg>
           </Animated.View>
         </GestureDetector>
+        <ScheduleInfo
+          isVisible={modalVisible}
+          onClose={handleModalClose}
+          nodeData={nodeData}
+        />
       </View>
     </>
   )
