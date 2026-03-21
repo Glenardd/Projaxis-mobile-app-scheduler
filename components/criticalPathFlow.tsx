@@ -20,19 +20,18 @@ export default function CriticalPathFlow({
   const isHorizontal = orientation === "horizontal";
 
   if (type === "flow") {
-    const Container = isHorizontal ? ScrollView : View;
 
     return (
-      <Container
+      <ScrollView
         horizontal={isHorizontal}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
           flexDirection: isHorizontal ? "row" : "column",
           alignItems: "center",
-          gap: responsiveSize(12),
           paddingVertical: responsiveSize(10),
         }}
         style={{ flexGrow: 0 }}
+        showsVerticalScrollIndicator={false}
       >
         {criticalPath.map((a, index) => (
           <React.Fragment key={`${a.label}-${index}`}>
@@ -72,7 +71,7 @@ export default function CriticalPathFlow({
             )}
           </React.Fragment>
         ))}
-      </Container>
+      </ScrollView>
     );
   }
 
