@@ -5,7 +5,7 @@ import { responsiveSize } from "@/utils/reponsiveSize";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, VirtualizedList } from "react-native";
 import { RefreshControl } from "react-native-gesture-handler";
 
 export default function TaskContent() {
@@ -96,8 +96,10 @@ export default function TaskContent() {
 
     return isLoading ? <LoadingIndicator /> : (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <FlatList
+            <VirtualizedList
                 data={sortedData}
+                getItem={(data, index) => data[index]}
+                getItemCount={(data) => data?.length ?? 0}
                 renderItem={activity_container}
                 refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />}
                 keyExtractor={(item) => item ? item?.id.toString() : ""}
