@@ -1,16 +1,20 @@
+import ActivityNameModal from "@/components/activity-name-modal";
 import LoadingIndicator from "@/components/loadingIndicator";
 import { useSearchActivity } from "@/services/activity.service";
 import { criticalPathMethod, type ActivityWithTiming } from "@/utils/cpm";
 import { responsiveSize } from "@/utils/reponsiveSize";
+import { shortenText } from "@/utils/textResponsive";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
-import { StyleSheet, Text, View, VirtualizedList } from "react-native";
+import { useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View, VirtualizedList } from "react-native";
 import { RefreshControl } from "react-native-gesture-handler";
 
 export default function TaskContent() {
     const { project_id } = useLocalSearchParams<{ project_id: string }>()
     const { activity, isLoading, isRefetchingByUser, refetchByUser } = useSearchActivity(parseInt(project_id))
+
+    const [showActivityName, setShowActivityName] = useState<{name: string, show: boolean}>({name: "", show:false})
 
     const data: ActivityWithTiming[] = useMemo(() => {
         if (!activity) return [];
@@ -42,11 +46,16 @@ export default function TaskContent() {
                             </LinearGradient>
                         </View>
                         <View style={{ gap: 5 }}>
-                            <Text style={{ color: "white", fontSize: 20 }}>{item.activity_name}</Text>
+                            <Pressable
+                                onPress={() => setShowActivityName({name: item.activity_name, show:true})}
+                            >
+                                <Text style={{ color: "white", fontSize: responsiveSize(20) }}>{shortenText(item.activity_name, 8)}</Text>
+                            </Pressable>
                             <Text style={styles.labels}>Activity {item.label}</Text>
                         </View>
                     </View>
 
+                    {/* critical and non critical */}
                     {item.slack !== 0 ?
                         (<View style={{ backgroundColor: "#59A43E", padding: 5, borderRadius: 5 }}>
                             <Text style={{ color: "white", fontSize: responsiveSize(10) }}>Non-Critical</Text>
@@ -118,6 +127,7 @@ export default function TaskContent() {
                 }
                 style={{ width: "100%" }}
             />
+            <ActivityNameModal activity_name={showActivityName.name} visible={showActivityName.show} onclose={() => setShowActivityName({name:"", show: !showActivityName.show})} />
         </View>
     )
 }
