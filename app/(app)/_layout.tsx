@@ -3,7 +3,7 @@ import { SplashScreenController } from "@/components/splash-screen-controller";
 import { useAuthContext } from '@/hooks/use-auth-context';
 import { Redirect, Stack } from 'expo-router';
 
-export default function HomeLayout() {
+export default function ProjectsLayout() {
   const { session, isLoading } = useAuthContext()
 
   const avatar_url = session?.user.user_metadata?.avatar_url
