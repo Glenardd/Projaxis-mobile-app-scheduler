@@ -1,4 +1,7 @@
+import { ActivityTableType, useSearchActivity } from "@/services/activity.service";
+import { calculatePercentage } from "@/utils/activity_limiter";
 import { responsiveSize } from "@/utils/reponsiveSize";
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -9,6 +12,10 @@ export default function AddActivityButton({ project_id }: { project_id: string }
     const router = useRouter()
 
     const [showOption, setShowOption] = useState<true | false>(false)
+
+    const { activity, refetchByUser, isRefetchingByUser, isLoading } : ActivityTableType = useSearchActivity(parseInt(project_id))
+    const { percent, color } = calculatePercentage(activity?.length || 0, 50)
+    const isFull: boolean = percent === 100
 
     const styles = StyleSheet.create({
         overlay: {
@@ -44,6 +51,10 @@ export default function AddActivityButton({ project_id }: { project_id: string }
         <View>
             <Pressable
                 onPress={() => {
+                    if(percent ===100){
+                        return
+                    }
+
                     setShowOption(true)
                 }}
                 style={{
@@ -77,11 +88,13 @@ export default function AddActivityButton({ project_id }: { project_id: string }
                                 justifyContent: "center",
                                 alignItems: "center",
                             }}>
-                            <Image style={{ height: 15, width: 15 }} source={require("../assets/images/add-icon.png")} />
+                            {
+                                isFull ? (<Ionicons name="warning-outline" size={24} color="white" />) : (<Image style={{ height: 15, width: 15 }} source={require("../assets/images/add-icon.png")} />)
+                            }
                         </LinearGradient>
                         <View>
-                            <Text style={{ color: "white", fontSize: 18 }}>Add New Activity</Text>
-                            <Text style={{ color: "#AEB7DA", fontSize: 12 }}>Create New Activity</Text>
+                            <Text style={{ color: "white", fontSize: responsiveSize(17) }}>{isFull ? "Activity Full":"Add New Activity"}</Text>
+                            <Text style={{ color: "#AEB7DA", fontSize: responsiveSize(11) }}>{isFull ? "Delete an Activity to continue":"Create New Activity"}</Text>
                         </View>
                     </View>
                 </LinearGradient>
