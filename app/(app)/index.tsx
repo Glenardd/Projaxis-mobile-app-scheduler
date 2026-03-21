@@ -5,13 +5,13 @@ import { useViewProjects } from "@/services/projects.service";
 import { responsiveSize } from "@/utils/reponsiveSize";
 import { useEffect } from "react";
 import {
-    FlatList,
     RefreshControl,
     Text,
-    View
+    View,
+    VirtualizedList
 } from "react-native";
 
-export default function Home() {
+export default function Projects() {
     const { projects, isLoading, refetchByUser, isRefetchingByUser, isPending } = useViewProjects()
 
     useEffect(() => {
@@ -20,24 +20,22 @@ export default function Home() {
     }, [isLoading, isPending]) // Add projects here!
 
     return isLoading ? <LoadingIndicator /> : (
-        <FlatList
+        <VirtualizedList
+            data={projects}
+            getItem={(data, index) => data[index]}           
+            getItemCount={(data) => data?.length ?? 0}   
+            renderItem={({ item }) => <ProjectCard item={item} />}
+            keyExtractor={(item) => item.id.toString()}
             refreshControl={
                 <RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />
             }
-            data={projects}
-            renderItem={({item}) => <ProjectCard item={item}/>}
-            keyExtractor={(item) => item.id.toString()}
             ListHeaderComponent={<AddProjectButton />}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-                padding: responsiveSize(25)
-            }}
+            contentContainerStyle={{ padding: responsiveSize(25), flexGrow: 1 }}
             ItemSeparatorComponent={() => <View style={{ height: responsiveSize(20) }} />}
-            ListHeaderComponentStyle={{
-                marginBottom: responsiveSize(25)
-            }}
+            ListHeaderComponentStyle={{ marginBottom: responsiveSize(25) }}
             ListEmptyComponent={
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                <View style={{ justifyContent: "center", alignItems: "center", flex:1 }}>
                     <Text style={{ color: "#30396cff", fontSize: responsiveSize(15) }}>Empty</Text>
                 </View>
             }
