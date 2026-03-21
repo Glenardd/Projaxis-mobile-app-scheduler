@@ -88,20 +88,17 @@ export function criticalPathMethod(activities: ActivityObjectType[]): ActivityWi
     activity.slack = activity.LS - activity.ES;
   });
 
-  
-  // Debug logs
-  // -----------------------------
-  console.log("ES:", topo.map(a => a.ES));
-  console.log("EF:", topo.map(a => a.EF));
-  console.log("LS:", topo.map(a => a.LS));
-  console.log("LF:", topo.map(a => a.LF));
-  console.log("Slack:", topo.map(a => a.slack));
+  // console.log("ES:", topo.map(a => a.ES));
+  // console.log("EF:", topo.map(a => a.EF));
+  // console.log("LS:", topo.map(a => a.LS));
+  // console.log("LF:", topo.map(a => a.LF));
+  // console.log("Slack:", topo.map(a => a.slack));
   // critical path
-  console.log(topo.filter((a => a.slack === 0)).map(a => a.label).join(", "));
+  // console.log(topo.filter((a => a.slack === 0)).map(a => a.label).join(", "));
   // non critical
-  console.log(topo.filter((a => a.slack > 0)).map(a => a.label).join(", "));
+  // console.log(topo.filter((a => a.slack > 0)).map(a => a.label).join(", "));
   // duration
-  console.log("Project Duration:", projectFinish);
+  // console.log("Project Duration:", projectFinish);
 
   return topo;
 }
