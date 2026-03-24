@@ -1,6 +1,6 @@
 import { type ActivityWithTiming } from "@/utils/cpm";
 import { responsiveSize } from "@/utils/reponsiveSize";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -91,10 +91,10 @@ export default function FlowChart(
   const layout = useMemo(() => ({
     NODE_W: 0.26 * width,
     NODE_H: 0.07 * height,
-    ROW_GAP: 0.20 * height,
-    COL_GAP: 0.30 * width,
+    ROW_GAP: 0.15 * height,
+    COL_GAP: Math.min(0.29 * width, 140),
     PAD_Y: 0.2 * height,
-    PAD_X: 0.5 * width,
+    PAD_X: 40,
     INIT_SCALE: width < 375 ? 0.7 : width < 768 ? 0.8 : 1.0
   }), [width, height])
 
@@ -132,7 +132,7 @@ export default function FlowChart(
   const pinchGesture = useMemo(() => Gesture.Pinch()
     .onUpdate((e) => {
       'worklet'
-      scale.value = Math.min(Math.max(savedScale.value * e.scale, 0.3), 3)
+      scale.value = Math.min(Math.max(savedScale.value * e.scale, 0.5), 2) // ✅ FIXED
     })
     .onEnd(() => {
       'worklet'
@@ -173,7 +173,7 @@ export default function FlowChart(
     [positioned]
   );
 
-  const MAX_CANVAS = 4096  // Android safe bitmap limit
+  const MAX_CANVAS = 8192  // raised limit
 
   const canvasH = useMemo(() => {
     const h = Math.max(...positioned.map(t => t.y)) + NODE_H / 2 + PAD_Y
@@ -184,6 +184,17 @@ export default function FlowChart(
     if (positioned.length === 0) return
     return Math.max(...positioned.map(t => t.x)) + NODE_W + PAD_X
   }, [positioned])
+
+  useEffect(() => {
+    if (!canvasW || !canvasH) return;
+
+    positionX.value = width / 2 - canvasW / 2;
+    positionY.value = height / 2 - canvasH / 2;
+
+    offsetX.value = positionX.value;
+    offsetY.value = positionY.value;
+
+  }, [canvasW, canvasH]);
 
   // build edges with correct slack lookup by label
   const edges = useMemo(() => {

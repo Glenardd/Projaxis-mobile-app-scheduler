@@ -3,14 +3,14 @@ import { memo } from "react";
 import { Defs, G, Line, Marker, Path } from "react-native-svg";
 
 function Arrow({ x1, y1, x2, y2, keyId, from, to }: ArrowProps) {
-  const spacing = 12; // gap before arrowhead
-
+  const spacing = 12;
   const dx = x2 - x1;
   const dy = y2 - y1;
   const len = Math.sqrt(dx * dx + dy * dy);
 
-  const newX2 = x2 - (dx / len) * spacing;
-  const newY2 = y2 - (dy / len) * spacing;
+  const factor = len > spacing ? (spacing / len) : 0;
+  const newX2 = x2 - dx * factor;
+  const newY2 = y2 - dy * factor;
 
   const isCriticalEdge =
     from.slack === 0 &&
