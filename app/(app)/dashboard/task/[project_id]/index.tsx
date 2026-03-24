@@ -10,7 +10,7 @@ export default function TaskSearch() {
 
     const { project_id } = useLocalSearchParams<{ project_id: string }>()
 
-    //searched activity
+    //get all activity
     const { activity: data, isRefetchingByUser, refetchByUser, isLoading } = useSearchActivity(parseInt(project_id))
 
     // sort data
