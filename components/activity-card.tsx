@@ -126,9 +126,8 @@ function ActivityContainer({
 
                 <View style={{ position: "absolute", right: 40, top: 0 }}>
                     <ActivityMenuDropdown
-                        id={item.id}
+                        item={item}
                         project_id={project_id}
-                        activity_id={item.id}
                     />
                 </View>
 
@@ -175,7 +174,7 @@ function ActivityContainer({
                 <View style={styles.box_lg}>
                     <Text style={styles.labels}>Predecessor</Text>
 
-                    {/* if predecessors is many allow horizontal scroll */}
+                    {/* if predecessors is long allow horizontal scroll */}
                     <View>
                         <ScrollView
                             horizontal

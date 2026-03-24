@@ -1,4 +1,4 @@
-import { useDeleteActivity } from "@/services/activity.service";
+import { ActivityObjectType, useActivityById, useDeleteActivity, useSearchActivity } from "@/services/activity.service";
 import { responsiveSize } from "@/utils/reponsiveSize";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -10,15 +10,41 @@ import DropdownMenu from "./menu-dropdown/dropdownMenu";
 import MenuOption from "./menu-dropdown/menuOption";
 import Indicator from "./message-indicator";
 
-export default function ActivityMenuDropdown({ id, project_id, activity_id }: { id: number, project_id: string, activity_id: number }) {
-    const [visible, setVisible] = useState(false);
-    const [confirmDelete, setConfirmDelete] = useState(false)
-    const [showOption, setShowOption] = useState<true | false>(false)
+interface ItemType{
+    project_id: string;
+    item: ActivityObjectType;
+}
 
-    const { deleteActivity, isPending } = useDeleteActivity(parseInt(project_id))
+export default function ActivityMenuDropdown({ item, project_id }: ItemType) {
+    
+    const label = item.label;
+    const activity_id = item.id;
+
+    const [visible, setVisible] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const [showOption, setShowOption] = useState<true | false>(false);
+
+    const { deleteActivity, isPending } = useDeleteActivity(parseInt(project_id));
+
+    //get all activities of current project
+    const { activity: data, isRefetchingByUser, refetchByUser, isLoading } = useSearchActivity(parseInt(project_id));
+    
+    //search the current activity
+    const {activity: current_activity_data} = useActivityById(activity_id);
+    const current_activity_label = current_activity_data?.label;
+
+    //access the activity predecessor
+    const activity_predecessor = data?.map((item) => item.predecessor);
+    
+    //check if this current activity is the predecessor of that activity
+    const OtherActivityPredecessor = activity_predecessor?.map((pred) => pred)
+
+    //if this current activity is used by that activity predecessor dont allow delete 
+    const isParent = OtherActivityPredecessor?.some((pred) => pred.find((label) => label === current_activity_label));
+    // console.log(OtherActivityPredecessor," ", current_activity_label ," ",hasPredecessor)
 
     const router = useRouter()
-
+    
     return (
         <View>
             <DropdownMenu
@@ -46,18 +72,22 @@ export default function ActivityMenuDropdown({ id, project_id, activity_id }: { 
                 }}>
                     <Text>Edit</Text>
                 </MenuOption>
-                <MenuOption onSelect={() => {
-                    setVisible(false)
-                    setConfirmDelete(true)
-                }}>
-                    <Text>Delete</Text>
-                </MenuOption>
+
+                {label !== "A" && !isParent ? (
+                    <MenuOption onSelect={() => {
+                        setVisible(false)
+                        setConfirmDelete(true)
+                    }}>
+                        <Text>Delete</Text>
+                    </MenuOption>
+                ) : ""}
+
             </DropdownMenu>
             <ConfirmationModal
                 visible={confirmDelete}
                 onCancel={() => setConfirmDelete(false)}
                 onConfirm={() => {
-                    deleteActivity(id)
+                    deleteActivity(activity_id)
                     setConfirmDelete(false);
                 }}
             />
