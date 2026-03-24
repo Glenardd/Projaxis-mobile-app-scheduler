@@ -88,7 +88,29 @@ const useInsertProject = () => {
             .insert([payload]) // wrap in array
             .select()
 
-        // console.log('Inserted project:', projects)
+        if (error) throw error;
+        const projectId = projects[0].id
+
+        // add starting node
+        const startingActivites = [
+            {
+                activity_name: "START",
+                project_id: projectId,
+                predecessor: [],      
+                label: "A",
+                expected: 0,
+                optimistic: 0,
+                most_likely: 0,
+                pessimistic: 0,
+                isDone: false,
+            }
+        ];
+
+        const { error: actError } = await supabase
+            .from("activity")
+            .insert(startingActivites);
+
+        if (actError) throw actError;
 
         // error checking
         if (error) throw error
@@ -102,7 +124,11 @@ const useInsertProject = () => {
             queryClient.invalidateQueries({
                 queryKey: ["projects"],
                 exact: false
-            })
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["activity"],
+                exact: false
+            });
         }
     })
 
