@@ -266,8 +266,11 @@ const useUpdateActivity = (id: number, onSuccessCallBack?: () => void) => {
         const { data: predecessorLabels } = await supabase
             .from("activity")
             .select("label")
-            .in("activity_name", predecessors)
+            .in("id", predecessors)
             .eq("project_id", project_id)
+
+        console.log("Predecessors input:", predecessors);
+        console.log("Fetched rows:", predecessorLabels);
 
         const predecessorsAlphabet = predecessorLabels?.map((pred) => pred.label) ?? [];
 
@@ -315,21 +318,18 @@ const useDeleteActivity = (project_id: number) => {
     const queryClient = useQueryClient();
 
     const deleteActivity = async (id: number) => {
-
-        // get label and predecessor
+        // 🔹 get deleted activity
         const { data: deletedActivity, error: deletedFetchError } =
             await supabase
                 .from("activity")
-                .select("label, predecessor")
+                .select("label")
                 .eq("id", id)
                 .single();
 
         if (deletedFetchError) throw deletedFetchError;
-
         const deletedLabel = deletedActivity.label;
-        const deletedPredecessors = deletedActivity.predecessor ?? [];
 
-        // get all activities before delete
+        // 🔹 get all activities before delete
         const { data: allActivities, error: fetchError } =
             await supabase
                 .from("activity")
@@ -339,7 +339,7 @@ const useDeleteActivity = (project_id: number) => {
 
         if (fetchError) throw fetchError;
 
-        // delete activity
+        // 🔹 delete activity
         const { error: deleteError } =
             await supabase
                 .from("activity")
@@ -348,59 +348,18 @@ const useDeleteActivity = (project_id: number) => {
 
         if (deleteError) throw deleteError;
 
-        // remaining activities
-        const remainingActivities = allActivities.filter(
-            act => act.id !== id
-        );
+        const remainingActivities = allActivities.filter(act => act.id !== id);
 
-        // reconnect predecessors first, middle last
+        // 🔹 update predecessors only (no relabeling!)
         for (const act of remainingActivities) {
-
-            let predecessors = act.predecessor ?? [];
-
-            // if activity depended on deleted
-            if (predecessors.includes(deletedLabel)) {
-
-                // remove deleted reference
-                predecessors = predecessors.filter(
-                    (p: string) => p !== deletedLabel
-                );
-
-
-                deletedPredecessors.forEach((p: string) => {
-                    if (!predecessors.includes(p)) {
-                        predecessors.push(p);
-                    }
-                });
-
-                act.predecessor = predecessors;
-            }
-        }
-
-        // relabel after deletion
-        const labelMap = new Map<string, string>();
-
-        remainingActivities.forEach((act, index) => {
-            labelMap.set(act.label, numberToLabel(index));
-        });
-
-        // update db base on label map
-        for (const act of remainingActivities) {
-
-            const newLabel = labelMap.get(act.label)!;
-
-            const updatedPredecessor =
-                act.predecessor?.map((p: string) =>
-                    labelMap.get(p) ?? p
-                ) ?? [];
+            const updatedPredecessor = act.predecessor?.filter(
+                (p: string) => p !== deletedLabel
+            ) ?? [];
 
             const { error: updateError } =
                 await supabase
                     .from("activity")
-                    .update({
-                        label: newLabel,
-                        predecessor: updatedPredecessor
-                    })
+                    .update({ predecessor: updatedPredecessor })
                     .eq("id", act.id);
 
             if (updateError) throw updateError;

@@ -9,82 +9,75 @@ import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
     label: string
-    value: string | number
-    name: string
+    id: number
+    activity_name: string
 }
 
 export default function ActivityEditDuration() {
 
-    const router = useRouter()
+    const router = useRouter();
 
-    const { activity_id } = useLocalSearchParams<{ activity_id: string }>()
-    const { project_id } = useLocalSearchParams<{ project_id: string }>()
+    const { activity_id } = useLocalSearchParams<{ activity_id: string }>();
+    const { project_id } = useLocalSearchParams<{ project_id: string }>();
 
     const { isPending, isSuccess, updateActivityMutate } = useUpdateActivity(parseInt(activity_id), () => {
         router.back() // on success
-    })
+    });
 
+    // find the accessed activity
     const { activity: activityById, refetchByUser: refetchByUserById, isRefetchingByUser: isRefetchingByUserById, isLoading: loadingActivity } = useActivityById(parseInt(activity_id))
+
+    // all activity from that project
     const { activity: searchedActivity, refetchByUser: refetchByUserSearch, isRefetchingByUser: isRefetchingByUserSearch, isLoading: loadingSearchActivity } = useSearchActivity(parseInt(project_id))
 
     // values from db
-    const activity_name_ = activityById?.activity_name
-    const projectId_ = activityById?.project_id
-    const activity_id_ = activityById?.id
-    const predecessor_ = activityById?.predecessor
-    const duration_ = activityById?.expected
+    const activity_name_ = activityById?.activity_name;
+    const projectId_ = activityById?.project_id;
+    const activity_id_ = activityById?.id;
+    const predecessor_ = activityById?.predecessor;
+    const duration_ = activityById?.expected;
 
+    const [currenPredecessor, setCurrenPredecessor] = useState<any[]>([]); // sets the current predecessor
+
+    const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false);
+    const [inputEmpty_duraton, setInputEmpty_duration] = useState(false);
+    const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false);
+    const [activityName, setActivityName] = useState("");
+    const [duration, setDuration] = useState("");
     const [isFocus, setIsFocus] = useState(false);
 
-    const [selected, setSelected] = useState<string[]>([]) // selects the id of the predecessor
-    const [predecessor, setPredecessor] = useState<string[]>([]) // sets the final predecessor
-
-    const [activityName, setActivityName] = useState("")
-    const [duration, setDuration] = useState("")
-
-    const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false)
-    const [inputEmpty_duraton, setInputEmpty_duration] = useState(false)
-    const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false)
-
-    // find the activity from the predecessor
-    const activity_predecessor = searchedActivity?.filter((item) => predecessor_?.includes(item.label))
-    const predecessor_content = activity_predecessor?.map((item) => ({
-        label: item.label,
-        value: item.id,
-        name: item.activity_name
-    }))
-    // console.log("Activity Predecessor at [activity_id]/index", predecessor_content)
-
-    const activityOptions = searchedActivity
-        ? searchedActivity
-            .filter(item => item.id !== parseInt(activity_id))
-            .map((item) => ({
-                label: item.label,
-                value: item.activity_name
-            }))
+    // will be used by multi
+    const activityOptions = searchedActivity ? searchedActivity
+        .filter(item => item.id !== parseInt(activity_id))// do not include the current activity label
+        .map((item) => ({
+            label: item.label,
+            key: item.id,
+            activity_name: item.activity_name
+        }))
         : [];
 
-    // logging
-    activityOptions.map((item) => console.log({ label: item.label, value: item.value }))
+    // label A should not have a multiSelect since this is the first task
+    const isNotLabelA = activityById?.label !== "A";
 
-    // will check if it has predecessor available
-    const isPredecessor = predecessor_?.map((item) => {
-        return item ?? []
-    }).length !== 0
-
+    // mount data from db
     useEffect(() => {
         if (!activityById) return
+
+        // if the current activity predecessor contains the label around all activities
+        // e.g. if b= ["a", "b"].includes("a") then get that activity
+        const activity_predecessor = searchedActivity?.filter((item) => predecessor_?.includes(item.label)).map((item) => ({ label: item.label, id: item.id, name: item.activity_name }));
+
         setActivityName(activity_name_ ?? "")
         setDuration(duration_ != null ? String(duration_) : "")
-        setSelected(predecessor_content ? predecessor_content.map(item => item.name) : [])
+        setCurrenPredecessor(activity_predecessor ? activity_predecessor.map(item => item.id) : [])
 
-    }, [activityById, predecessor_content])
+    }, [activityById])
 
-    const renderItem = ({ value, label }: PredecessorsTypes) => {
+    const renderItem = ({ id, label, activity_name }: PredecessorsTypes) => {
         return (
             <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
                 <Text style={[{ color: "#59accfff" }, styles.item]}>{label}</Text>
-                <Text style={styles.item}>{value}</Text>
+                <Text style={styles.item}>{activity_name}</Text>
             </View>
         );
     };
@@ -116,7 +109,7 @@ export default function ActivityEditDuration() {
 
                 {/* Predecessor select */}
                 <View style={styles.fieldContainer}>
-                    {isPredecessor && (
+                    {isNotLabelA && (
                         <>
                             <Text style={styles.label}>Predecessor</Text>
                             <MultiSelect
@@ -125,31 +118,15 @@ export default function ActivityEditDuration() {
                                 data={activityOptions}
                                 placeholderStyle={styles.placeholder}
                                 labelField="label"
-                                valueField="value"
+                                valueField="key"
                                 placeholder={isFocus ? "..." : "Select"}
                                 renderItem={renderItem}
-                                value={selected}
-                                onChange={(item) => {
-                                    console.log("Items is: ", item)
-                                    if (item === null) {
-                                        setIsFocus(false)
-                                        setInputEmpty_predecessor(true)
+                                value={currenPredecessor}
+                                onChange={(predecessor) => {
+                                    const newPredecessor = searchedActivity?.filter((activity) => predecessor.some((id) => parseInt(id) === activity.id)).map((pred) => pred.label)
+                                    console.log("activity_name: ", newPredecessor)
 
-                                        return setPredecessor([])
-                                    } else {
-                                        setInputEmpty_predecessor(false)
-
-                                        const numericItems = item.map(Number)
-
-                                        const selectedNames = searchedActivity
-                                            ?.filter(activity => numericItems.includes(activity.id))  // no String() conversion, both are numbers
-                                            .map(activity => activity.activity_name) || []
-
-                                        console.log(selectedNames)
-                                        setPredecessor(selectedNames)
-
-                                        return setSelected(item)
-                                    }
+                                    setCurrenPredecessor(predecessor)
                                 }}
                                 onFocus={() => setIsFocus(true)}
                                 onBlur={() => setIsFocus(false)}
@@ -191,31 +168,28 @@ export default function ActivityEditDuration() {
                 <View style={[styles.row, { justifyContent: "space-between", paddingTop: 10 }]}>
                     <View style={styles.buttons}>
                         <Pressable onPress={async () => {
-
-                            // console.log("activity_name: ", inputEmpty_activityName)
-                            // console.log("optimistic: ", inputEmpty_optimistic)
-                            // console.log("predecessor: ", inputEmpty_predecessor)
-
                             let hasError = false
 
                             if (!activityName.trim()) {
                                 setInputEmpty_activityName(true)
                                 hasError = true
-                            }
-
-                            if (predecessor?.length === 0) {
-                                setInputEmpty_predecessor(true)
-                            }
+                            };
 
                             if (!duration.trim()) {
                                 setInputEmpty_duration(true)
+                                hasError = true
+                            };
+
+                            // if its not label "A" dont let it have zero predecessor
+                            if (isNotLabelA && currenPredecessor.length === 0) {
+                                setInputEmpty_predecessor(true)
                                 hasError = true
                             }
 
                             if (hasError) {
                                 console.log("Some inputs are empty")
                                 return
-                            }
+                            };
 
                             try {
                                 //insert data
@@ -225,13 +199,13 @@ export default function ActivityEditDuration() {
                                     mostLikely: "",
                                     pessimistic: "",
                                     project_id: projectId_,
-                                    predecessors: predecessor,
+                                    predecessors: currenPredecessor,
                                     expected: parseInt(duration)
-                                })
+                                });
 
                             } catch (e) {
                                 throw console.log(e)
-                            }
+                            };
 
                         }}>
                             <LinearGradient style={{ borderRadius: 10, padding: 10 }} colors={isPending ? ["#3A3F6B", "#3A3F6B"] : ["#63D0FF", "#427CE8", "#235691"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
@@ -339,4 +313,4 @@ const styles = StyleSheet.create({
         justifyContent: "center", alignItems: "center"
 
     }
-})
+});

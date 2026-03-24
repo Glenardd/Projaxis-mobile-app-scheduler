@@ -9,8 +9,9 @@ import { MultiSelect } from "react-native-element-dropdown";
 import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
-    label: string,
-    value: string
+    label: string
+    id: number
+    activity_name: string
 }
 
 export default function ActivityEditPert() {
@@ -38,64 +39,56 @@ export default function ActivityEditPert() {
 
     const [isFocus, setIsFocus] = useState(false);
 
-    const [selected, setSelected] = useState<string[]>([]) // selects the id of the predecessor
-    const [predecessor, setPredecessor] = useState<string[]>([]) // sets the final predecessor
+    const [currenPredecessor, setCurrenPredecessor] = useState<any[]>([]); // sets the current predecessor
 
-    const [activityName, setActivityName] = useState("")
-    const [optimistic, setOptimistic] = useState("")
-    const [mostLikely, setMostLikely] = useState("")
-    const [pessimistic, setPessimistic] = useState("")
+    const [activityName, setActivityName] = useState("");
+    const [optimistic, setOptimistic] = useState("");
+    const [mostLikely, setMostLikely] = useState("");
+    const [pessimistic, setPessimistic] = useState("");
 
-    const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false)
-    const [inputEmpty_optimistic, setInputEmpty_optimistic] = useState(false)
-    const [inputEmpty_pessimistic, setInputEmpty_pessimistic] = useState(false)
-    const [inputEmpty_mostLikey, setInputEmpty_mostLikely] = useState(false)
-    const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false)
+    const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false);
+    const [inputEmpty_optimistic, setInputEmpty_optimistic] = useState(false);
+    const [inputEmpty_pessimistic, setInputEmpty_pessimistic] = useState(false);
+    const [inputEmpty_mostLikey, setInputEmpty_mostLikely] = useState(false);
+    const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false);
 
-    const [isLoading, setIsLoading] = useState(false)
-
-    // find the activity from the predecessor
-    const activity_predecessor = searchedActivity?.filter((item) => predecessor_?.includes(item.label))
-    const predecessor_content = activity_predecessor?.map((item) => ({
-        label: item.label,
-        value: item.activity_name
-    }))
-    // console.log("Activity Predecessor at [activity_id]/index", predecessor_content)
-
-    const activityOptions = searchedActivity
-        ? searchedActivity
-            .filter(item => item.id !== parseInt(activity_id))
-            .map((item) => ({
-                label: item.label,
-                value: item.activity_name
-            }))
+    // will be used in mutiSelect
+    const activityOptions = searchedActivity ? searchedActivity
+        .filter(item => item.id !== parseInt(activity_id))// do not include the current activity label
+        .map((item) => ({
+            label: item.label,
+            key: item.id,
+            activity_name: item.activity_name
+        }))
         : [];
 
-    // logging
-    // activityOptions.map((item) => console.log({ label: item.label, value: item.value }))
+    // label A should not have a multiSelect since this is the first task
+    const isNotLabelA = activityById?.label !== "A";
+    console.log("is not label A: ", isNotLabelA);
 
-    // will check if it has predecessor available
-    const isPredecessor = predecessor_?.map((item) => {
-        return item ?? []
-    }).length !== 0
+    const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic });
 
-    const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
-
+    // mount data from db
     useEffect(() => {
         if (!activityById) return
+
+        // if the current activity predecessor contains the label around all activities
+        // e.g. if b= ["a", "b"].includes("a") then get that activity
+        const activity_predecessor = searchedActivity?.filter((item) => predecessor_?.includes(item.label)).map((item) => ({ label: item.label, id: item.id, name: item.activity_name }));
+
         setActivityName(activity_name_ ?? "")
         setOptimistic(optimistic_ != null ? String(optimistic_) : "")
         setMostLikely(most_likely != null ? String(most_likely) : "")
         setPessimistic(pessimistic_ != null ? String(pessimistic_) : "")
-        setSelected(predecessor_content ? predecessor_content.map(item => item.value) : [])
+        setCurrenPredecessor(activity_predecessor ? activity_predecessor.map(item => item.id) : [])
 
     }, [activityById])
 
-    const renderItem = ({ value, label }: PredecessorsTypes) => {
+    const renderItem = ({ id, label, activity_name }: PredecessorsTypes) => {
         return (
             <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
                 <Text style={[{ color: "#59accfff" }, styles.item]}>{label}</Text>
-                <Text style={styles.item}>{value}</Text>
+                <Text style={styles.item}>{activity_name}</Text>
             </View>
         );
     };
@@ -104,7 +97,6 @@ export default function ActivityEditPert() {
         <ScrollView contentContainerStyle={{ paddingBottom: 50 }} style={styles.container}>
             {/* while data is fetching initiate loading */}
             <Indicator message="Loading" isPending={loadingActivity} />
-
 
             <View style={styles.column}>
 
@@ -135,7 +127,7 @@ export default function ActivityEditPert() {
 
                 {/* Predecessor select */}
                 <View style={styles.fieldContainer}>
-                    {isPredecessor && (
+                    {isNotLabelA && (
                         <>
                             <Text style={styles.label}>Predecessor</Text>
                             <MultiSelect
@@ -144,31 +136,12 @@ export default function ActivityEditPert() {
                                 data={activityOptions}
                                 placeholderStyle={styles.placeholder}
                                 labelField="label"
-                                valueField="value"
+                                valueField="key"
                                 placeholder={isFocus ? "..." : "Select"}
                                 renderItem={renderItem}
-                                value={selected}
+                                value={currenPredecessor}
                                 onChange={(item) => {
-                                    console.log("Items is: ", item)
-                                    if (item === null) {
-                                        setIsFocus(false)
-                                        setInputEmpty_predecessor(true)
-
-                                        return setPredecessor([])
-                                    } else {
-                                        setInputEmpty_predecessor(false)
-
-                                        const numericItems = item.map(Number)
-
-                                        const selectedNames = searchedActivity
-                                            ?.filter(activity => numericItems.includes(activity.id))  // no String() conversion, both are numbers
-                                            .map(activity => activity.activity_name) || []
-
-                                        console.log(selectedNames)
-                                        setPredecessor(selectedNames)
-
-                                        return setSelected(item)
-                                    }
+                                    setCurrenPredecessor(item)
                                 }}
                                 onFocus={() => setIsFocus(true)}
                                 onBlur={() => setIsFocus(false)}
@@ -198,8 +171,6 @@ export default function ActivityEditPert() {
 
                             if (optimistic.length > 0) {
                                 setInputEmpty_optimistic(false)
-                            } else {
-                                setInputEmpty_optimistic(true)
                             }
                         }}
                         keyboardType="numeric"
@@ -248,13 +219,6 @@ export default function ActivityEditPert() {
                 <View style={[styles.row, { justifyContent: "space-between", paddingTop: 10 }]}>
                     <View style={styles.buttons}>
                         <Pressable onPress={async () => {
-
-                            // console.log("activity_name: ", inputEmpty_activityName)
-                            // console.log("optimistic: ", inputEmpty_optimistic)
-                            // console.log("most likely: ", inputEmpty_mostLikey)
-                            // console.log("pessimistic: ", inputEmpty_pessimistic)
-                            // console.log("predecessor: ", inputEmpty_predecessor)
-
                             let hasError = false
 
                             if (!activityName.trim()) {
@@ -262,8 +226,10 @@ export default function ActivityEditPert() {
                                 hasError = true
                             }
 
-                            if (predecessor?.length === 0) {
+                            // if its not label "A" dont let it have zero predecessor
+                            if (isNotLabelA && currenPredecessor.length === 0) {
                                 setInputEmpty_predecessor(true)
+                                hasError = true
                             }
 
                             if (!optimistic.trim()) {
@@ -284,7 +250,7 @@ export default function ActivityEditPert() {
                             if (hasError) {
                                 console.log("Some inputs are empty")
                                 return
-                            }
+                            };
 
                             try {
                                 //insert data
@@ -294,13 +260,13 @@ export default function ActivityEditPert() {
                                     mostLikely: mostLikely,
                                     pessimistic: pessimistic,
                                     project_id: projectId_,
-                                    predecessors: predecessor,
+                                    predecessors: currenPredecessor,
                                     expected: expected_time
                                 })
 
                             } catch (e) {
                                 throw console.log(e)
-                            }
+                            };
 
                         }}>
                             <LinearGradient style={{ borderRadius: 10, padding: 10 }} colors={isPending ? ["#3A3F6B", "#3A3F6B"] : ["#63D0FF", "#427CE8", "#235691"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
@@ -416,4 +382,4 @@ const styles = StyleSheet.create({
         justifyContent: "center", alignItems: "center"
 
     }
-})
+});
