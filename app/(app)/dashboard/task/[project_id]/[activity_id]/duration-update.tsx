@@ -75,6 +75,7 @@ export default function ActivityEditDuration() {
 
     const isChanged =
         activityName !== (activity_name_ ?? "") ||
+        duration !== (duration_ !== null ? String(duration_) : "") ||
         JSON.stringify(currenPredecessor.slice().sort()) !==
         JSON.stringify(
             (searchedActivity?.filter(item => predecessor_?.includes(item.label)).map(item => item.id) ?? []).slice().sort()
