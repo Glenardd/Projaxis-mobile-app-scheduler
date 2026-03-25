@@ -46,11 +46,11 @@ export default function ActivityEditPert() {
     const [mostLikely, setMostLikely] = useState("");
     const [pessimistic, setPessimistic] = useState("");
 
-    const [inputEmpty_activityName, setInputEmpty_activityName] = useState(false);
-    const [inputEmpty_optimistic, setInputEmpty_optimistic] = useState(false);
-    const [inputEmpty_pessimistic, setInputEmpty_pessimistic] = useState(false);
-    const [inputEmpty_mostLikey, setInputEmpty_mostLikely] = useState(false);
-    const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState(false);
+    const [inputEmpty_activityName, setInputEmpty_activityName] = useState<boolean>(false);
+    const [inputEmpty_optimistic, setInputEmpty_optimistic] = useState<boolean>(false);
+    const [inputEmpty_pessimistic, setInputEmpty_pessimistic] = useState<boolean>(false);
+    const [inputEmpty_mostLikey, setInputEmpty_mostLikely] = useState<boolean>(false);
+    const [inputEmpty_predecessor, setInputEmpty_predecessor] = useState<boolean>(false);
 
     // will be used in mutiSelect
     const activityOptions = searchedActivity ? searchedActivity
@@ -64,25 +64,35 @@ export default function ActivityEditPert() {
 
     // label A should not have a multiSelect since this is the first task
     const isNotLabelA = activityById?.label !== "A";
-    console.log("is not label A: ", isNotLabelA);
+    // console.log("is not label A: ", isNotLabelA);
 
     const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic });
 
     // mount data from db
     useEffect(() => {
-        if (!activityById) return
+        if (!activityById) return;
 
         // if the current activity predecessor contains the label around all activities
         // e.g. if b= ["a", "b"].includes("a") then get that activity
         const activity_predecessor = searchedActivity?.filter((item) => predecessor_?.includes(item.label)).map((item) => ({ label: item.label, id: item.id, name: item.activity_name }));
 
-        setActivityName(activity_name_ ?? "")
-        setOptimistic(optimistic_ != null ? String(optimistic_) : "")
-        setMostLikely(most_likely != null ? String(most_likely) : "")
-        setPessimistic(pessimistic_ != null ? String(pessimistic_) : "")
-        setCurrenPredecessor(activity_predecessor ? activity_predecessor.map(item => item.id) : [])
+        setActivityName(activity_name_ ?? "");
+        setOptimistic(optimistic_ != null ? String(optimistic_) : "");
+        setMostLikely(most_likely != null ? String(most_likely) : "");
+        setPessimistic(pessimistic_ != null ? String(pessimistic_) : "");
+        setCurrenPredecessor(activity_predecessor ? activity_predecessor.map(item => item.id) : []);
+    }, [activityById]);
 
-    }, [activityById])
+    // to detect changes in input
+    const isChanged =
+        activityName !== (activity_name_ ?? "") ||
+        optimistic !== (optimistic_ != null ? String(optimistic_) : "") ||
+        mostLikely !== (most_likely != null ? String(most_likely) : "") ||
+        pessimistic !== (pessimistic_ != null ? String(pessimistic_) : "") ||
+        JSON.stringify(currenPredecessor.slice().sort()) !==
+        JSON.stringify(
+            (searchedActivity?.filter(item => predecessor_?.includes(item.label)).map(item => item.id) ?? []).slice().sort()
+        );
 
     const renderItem = ({ id, label, activity_name }: PredecessorsTypes) => {
         return (
@@ -115,11 +125,11 @@ export default function ActivityEditPert() {
                         style={[styles.input, { borderColor: inputEmpty_activityName ? "red" : "#625B71", borderWidth: 1 }]}
                         value={activityName}
                         onChangeText={(text) => {
-                            setActivityName(text)
+                            setActivityName(text);
 
                             if (text.length > 0) {
                                 setInputEmpty_activityName(false)
-                            }
+                            };
                         }}
                         maxLength={60}
                     />
@@ -141,6 +151,7 @@ export default function ActivityEditPert() {
                                 renderItem={renderItem}
                                 value={currenPredecessor}
                                 onChange={(item) => {
+                                    setInputEmpty_predecessor(false)
                                     setCurrenPredecessor(item)
                                 }}
                                 onFocus={() => setIsFocus(true)}
@@ -218,7 +229,7 @@ export default function ActivityEditPert() {
                 {/* update task */}
                 <View style={[styles.row, { justifyContent: "space-between", paddingTop: 10 }]}>
                     <View style={styles.buttons}>
-                        <Pressable onPress={async () => {
+                        <Pressable disabled={!isChanged} onPress={async () => {
                             let hasError = false
 
                             if (!activityName.trim()) {
@@ -269,7 +280,13 @@ export default function ActivityEditPert() {
                             };
 
                         }}>
-                            <LinearGradient style={{ borderRadius: 10, padding: 10 }} colors={isPending ? ["#3A3F6B", "#3A3F6B"] : ["#63D0FF", "#427CE8", "#235691"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                            {/* when disabled onPress button changes opacity */}
+                            <LinearGradient
+                                style={{ borderRadius: 10, padding: 10, opacity: !isChanged ? 0.4 : 1 }}
+                                colors={isPending ? ["#3A3F6B", "#3A3F6B"] : ["#63D0FF", "#427CE8", "#235691"]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                            >
                                 <Text style={{ textAlign: "center", color: "white", fontWeight: "600" }}>Update Task</Text>
                             </LinearGradient>
                         </Pressable>

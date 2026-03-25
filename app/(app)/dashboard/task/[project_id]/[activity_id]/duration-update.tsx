@@ -73,6 +73,13 @@ export default function ActivityEditDuration() {
 
     }, [activityById])
 
+    const isChanged =
+        activityName !== (activity_name_ ?? "") ||
+        JSON.stringify(currenPredecessor.slice().sort()) !==
+        JSON.stringify(
+            (searchedActivity?.filter(item => predecessor_?.includes(item.label)).map(item => item.id) ?? []).slice().sort()
+        );
+
     const renderItem = ({ id, label, activity_name }: PredecessorsTypes) => {
         return (
             <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
@@ -123,9 +130,7 @@ export default function ActivityEditDuration() {
                                 renderItem={renderItem}
                                 value={currenPredecessor}
                                 onChange={(predecessor) => {
-                                    const newPredecessor = searchedActivity?.filter((activity) => predecessor.some((id) => parseInt(id) === activity.id)).map((pred) => pred.label)
-                                    console.log("activity_name: ", newPredecessor)
-
+                                    setInputEmpty_predecessor(false)
                                     setCurrenPredecessor(predecessor)
                                 }}
                                 onFocus={() => setIsFocus(true)}
@@ -167,7 +172,7 @@ export default function ActivityEditDuration() {
                 {/* update task */}
                 <View style={[styles.row, { justifyContent: "space-between", paddingTop: 10 }]}>
                     <View style={styles.buttons}>
-                        <Pressable onPress={async () => {
+                        <Pressable disabled={!isChanged} onPress={async () => {
                             let hasError = false
 
                             if (!activityName.trim()) {
@@ -208,7 +213,13 @@ export default function ActivityEditDuration() {
                             };
 
                         }}>
-                            <LinearGradient style={{ borderRadius: 10, padding: 10 }} colors={isPending ? ["#3A3F6B", "#3A3F6B"] : ["#63D0FF", "#427CE8", "#235691"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                            {/* when disabled onPress button changes opacity */}
+                            <LinearGradient
+                                style={{ borderRadius: 10, padding: 10, opacity: !isChanged ? 0.4 : 1 }}
+                                colors={isPending ? ["#3A3F6B", "#3A3F6B"] : ["#63D0FF", "#427CE8", "#235691"]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                            >
                                 <Text style={{ textAlign: "center", color: "white", fontWeight: "600" }}>Update Task</Text>
                             </LinearGradient>
                         </Pressable>
