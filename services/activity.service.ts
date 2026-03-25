@@ -175,11 +175,13 @@ const useInsertActivity = (onSuccessCallBack?: () => void) => {
             isDone
         } = InsertPayload
 
+        // console.log("new predecessor made: ", predecessors)
+
         // get predecessor labels
         const { data: predecessorData } = await supabase
             .from("activity")
             .select("label")
-            .in("activity_name", predecessors)
+            .in("id", predecessors)
             .eq("project_id", project_id)
 
         const predecessorsId =
@@ -269,8 +271,7 @@ const useUpdateActivity = (id: number, onSuccessCallBack?: () => void) => {
             .in("id", predecessors)
             .eq("project_id", project_id)
 
-        console.log("Predecessors input:", predecessors);
-        console.log("Fetched rows:", predecessorLabels);
+        // console.log("Fetched rows:", predecessorLabels);
 
         const predecessorsAlphabet = predecessorLabels?.map((pred) => pred.label) ?? [];
 
@@ -284,7 +285,7 @@ const useUpdateActivity = (id: number, onSuccessCallBack?: () => void) => {
             expected: expected,
             isDone: isDone
         }
-        console.log(payload);
+        // console.log(payload);
 
         const { data: updatedActivity, error } = await supabase
             .from("activity")
@@ -318,7 +319,7 @@ const useDeleteActivity = (project_id: number) => {
     const queryClient = useQueryClient();
 
     const deleteActivity = async (id: number) => {
-        // 🔹 get deleted activity
+        // get deleted activity
         const { data: deletedActivity, error: deletedFetchError } =
             await supabase
                 .from("activity")
@@ -329,7 +330,7 @@ const useDeleteActivity = (project_id: number) => {
         if (deletedFetchError) throw deletedFetchError;
         const deletedLabel = deletedActivity.label;
 
-        // 🔹 get all activities before delete
+        // get all activities before delete
         const { data: allActivities, error: fetchError } =
             await supabase
                 .from("activity")
@@ -339,7 +340,7 @@ const useDeleteActivity = (project_id: number) => {
 
         if (fetchError) throw fetchError;
 
-        // 🔹 delete activity
+        // delete activity
         const { error: deleteError } =
             await supabase
                 .from("activity")
@@ -350,7 +351,7 @@ const useDeleteActivity = (project_id: number) => {
 
         const remainingActivities = allActivities.filter(act => act.id !== id);
 
-        // 🔹 update predecessors only (no relabeling!)
+        // update predecessors only (no relabeling!)
         for (const act of remainingActivities) {
             const updatedPredecessor = act.predecessor?.filter(
                 (p: string) => p !== deletedLabel
@@ -400,7 +401,7 @@ const useInsertActivityDuration = (onSuccessCallBack?: () => void) => {
         const { data: predecessorData } = await supabase
             .from("activity")
             .select("label")
-            .in("activity_name", predecessors)
+            .in("id", predecessors)
             .eq("project_id", project_id)
 
         const predecessorsId =
