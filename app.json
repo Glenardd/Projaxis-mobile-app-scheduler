@@ -5,7 +5,7 @@
     "slug": "projaxis",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon_projaxis.png",
     "scheme": "projaxis",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -15,10 +15,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/icon_projaxis.png",
+        "backgroundImage": "./assets/images/icon_projaxis.png",
+        "backgroundColor": "#070C27"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -34,7 +33,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/icon_projaxis.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#070C27",
