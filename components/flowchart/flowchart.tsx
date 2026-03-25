@@ -90,7 +90,7 @@ export default function FlowChart(
 
   const layout = useMemo(() => ({
     NODE_W: 0.26 * width,
-    NODE_H: 0.07 * height,
+    NODE_H: 0.06 * height,
     ROW_GAP: 0.15 * height,
     COL_GAP: Math.min(0.29 * width, 140),
     PAD_Y: 0.2 * height,
@@ -114,7 +114,7 @@ export default function FlowChart(
   const savedScale = useSharedValue(1)
 
   const panGesture = useMemo(() => Gesture.Pan()
-    .minDistance(10)
+    .minDistance(0)
     .onUpdate((e) => {
       'worklet'
       positionX.value = offsetX.value + e.translationX
@@ -129,24 +129,44 @@ export default function FlowChart(
       hasMovedY.value = true
     }), [])
 
-  const pinchGesture = useMemo(() => Gesture.Pinch()
-    .onUpdate((e) => {
-      'worklet'
-      scale.value = Math.min(Math.max(savedScale.value * e.scale, 0.5), 2) // ✅ FIXED
-    })
-    .onEnd(() => {
-      'worklet'
-      savedScale.value = scale.value
-      hasMovedX.value = true
-      hasMovedY.value = true
-    }), [])
+  const pinchGesture = useMemo(() =>
+    Gesture.Pinch()
+      .onUpdate((e) => {
+        'worklet'
+
+        const newScale = Math.min(Math.max(savedScale.value * e.scale, 0.5),)
+
+        // 🔥 focal point (where fingers are)
+        const focalX = e.focalX
+        const focalY = e.focalY
+
+        // adjust position so zoom centers on fingers
+        positionX.value =
+          focalX - (focalX - offsetX.value) * (newScale / savedScale.value)
+
+        positionY.value =
+          focalY - (focalY - offsetY.value) * (newScale / savedScale.value)
+
+        scale.value = newScale
+      })
+      .onEnd(() => {
+        'worklet'
+        savedScale.value = scale.value
+        offsetX.value = positionX.value
+        offsetY.value = positionY.value
+
+        hasMovedX.value = true
+        hasMovedY.value = true
+      }),
+    []
+  )
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
+      { scale: scale.value },
       { translateX: positionX.value },
       { translateY: positionY.value },
-      { scale: scale.value }
-    ],
+    ]
   }));
 
   const buttonStyle = useAnimatedStyle(() => ({
@@ -174,25 +194,36 @@ export default function FlowChart(
   );
 
   const MAX_CANVAS = 8192  // raised limit
+  // bounding box
+  const bounds = useMemo(() => {
+    if (positioned.length === 0) return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    const minX = Math.min(...positioned.map(t => t.x - NODE_W / 2));
+    const maxX = Math.max(...positioned.map(t => t.x + NODE_W / 2));
+    const minY = Math.min(...positioned.map(t => t.y - NODE_H / 2));
+    const maxY = Math.max(...positioned.map(t => t.y + NODE_H / 2));
+    return { minX, maxX, minY, maxY };
+  }, [positioned, NODE_W, NODE_H]);
 
-  const canvasH = useMemo(() => {
-    const h = Math.max(...positioned.map(t => t.y)) + NODE_H / 2 + PAD_Y
-    return Math.min(h, MAX_CANVAS)  // ✅ cap it
-  }, [positioned])
-
-  const canvasW = useMemo(() => {
-    if (positioned.length === 0) return
-    return Math.max(...positioned.map(t => t.x)) + NODE_W + PAD_X
-  }, [positioned])
+  const canvasW = bounds.maxX - bounds.minX + PAD_X * 2;
+  const canvasH = Math.min(bounds.maxY - bounds.minY + PAD_Y * 2, MAX_CANVAS);
 
   useEffect(() => {
     if (!canvasW || !canvasH) return;
 
-    positionX.value = width / 2 - canvasW / 2;
-    positionY.value = height / 2 - canvasH / 2;
+    const centerX = (bounds.minX + bounds.maxX) / 2;
+    const centerY = (bounds.minY + bounds.maxY) / 2;
+
+    const scaledCenterX = centerX * INIT_SCALE;
+    const scaledCenterY = centerY * INIT_SCALE;
+
+    positionX.value = width / 2 - scaledCenterX;
+    positionY.value = height / 2 - scaledCenterY;
 
     offsetX.value = positionX.value;
     offsetY.value = positionY.value;
+
+    scale.value = INIT_SCALE;
+    savedScale.value = INIT_SCALE;
 
   }, [canvasW, canvasH]);
 
@@ -282,7 +313,7 @@ export default function FlowChart(
                   onPress={handleNodePress}
                   key={task.label}
                   task={task}
-                  data={data[i]}
+                  data={dataMap.get(task.label)!}
                   NODE_W={NODE_W}
                   NODE_H={NODE_H}
                 />

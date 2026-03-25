@@ -35,7 +35,6 @@ const computeLayout = (
   // ✅ compute depth for all tasks
   tasks.forEach(t => {
     if (t.activity_name === "END") {
-      // push END one level deeper than the deepest predecessor
       const maxDepth = Math.max(0, ...Array.from(depthMap.values()))
       depthMap.set(t.label, maxDepth + 1)
     } else {
@@ -57,8 +56,9 @@ const computeLayout = (
   levels.forEach((levelTasks, depth) => {
     const count = levelTasks.length
     const totalWidth = (count - 1) * COL_GAP
-    const startX = screenWidth / 2 - totalWidth / 2
-
+    const canvasWidth = Math.max(screenWidth, totalWidth + PAD_X * 2)
+    const startX = canvasWidth / 2 - totalWidth / 2 + NODE_W / 2
+    
     levelTasks.forEach((task, i) => {
       positioned.push({
         ...task,
@@ -70,7 +70,17 @@ const computeLayout = (
     })
   })
 
-  return positioned
+  // ✅ compute bounding box
+  const minX = Math.min(...positioned.map(t => t.x - NODE_W / 2))
+  const maxX = Math.max(...positioned.map(t => t.x + NODE_W / 2))
+  const minY = Math.min(...positioned.map(t => t.y - NODE_H / 2))
+  const maxY = Math.max(...positioned.map(t => t.y + NODE_H / 2))
+
+  // attach bounds to each task (optional, useful for centering later)
+  return positioned.map(t => ({
+    ...t,
+    bounds: { minX, maxX, minY, maxY }
+  }))
 }
 
 export default computeLayout
