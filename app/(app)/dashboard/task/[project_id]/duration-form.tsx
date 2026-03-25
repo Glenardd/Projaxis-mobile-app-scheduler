@@ -10,8 +10,8 @@ import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
     label: string
-    value: number
-    name: string
+    id: number
+    activity_name: string
 }
 
 export default function AddTaskContentDuration() {
@@ -23,8 +23,7 @@ export default function AddTaskContentDuration() {
 
     const [isFocus, setIsFocus] = useState(false);
 
-    const [selected, setSelected] = useState<string[]>([]) // selects the id of the predecessor
-    const [predecessor, setPredecessor] = useState<string[]>([]) // sets the final predecessor
+    const [newPredecessor, setNewPredecessor] = useState<string[]>([]) // sets the predecessor id
 
     const [activityName, setActivityName] = useState("")
     const [duration, setDuration] = useState("")
@@ -39,19 +38,19 @@ export default function AddTaskContentDuration() {
 
     const data = data_?.map((item) => ({
         label: item.label,
-        value: item.id,           // unique identifier — NOT activity_name
-        name: item.activity_name
+        key: item.id,
+        activity_name: item.activity_name
     })) || []
 
     const isPredecessor = data_?.map((item) => {
         return item.predecessor ?? []
     }).length !== 0
 
-    const renderItem = ({ value, label, name }: PredecessorsTypes) => {
+    const renderItem = ({ id, label, activity_name }: PredecessorsTypes) => {
         return (
             <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
                 <Text style={[{ color: "#59accfff" }, styles.item]}>{label}</Text>
-                <Text style={styles.item}>{name}</Text>
+                <Text style={styles.item}>{activity_name}</Text>
             </View>
         );
     };
@@ -94,31 +93,17 @@ export default function AddTaskContentDuration() {
                                 data={data}
                                 placeholderStyle={styles.placeholder}
                                 labelField="label"
-                                valueField="value"
+                                valueField="key"
                                 placeholder={isFocus ? "..." : "Select"}
                                 renderItem={renderItem}
-                                value={selected}
-                                onChange={(item) => {
-                                    if (item === null) {
-                                        setIsFocus(false)
-                                        setInputEmpty_predecessor(true)
-                                        setPredecessor([])
+                                value={newPredecessor}
+                                onChange={(predecessor) => {
+                                    
+                                    if (predecessor.length > 0) {
+                                        setInputEmpty_predecessor(false);
+                                    };
 
-                                        return setSelected([])
-                                    } else {
-                                        setInputEmpty_predecessor(false)
-
-                                        const numericItems = item.map(Number)
-
-                                        const selectedNames = data_
-                                            ?.filter(activity => numericItems.includes(activity.id))  // no String() conversion, both are numbers
-                                            .map(activity => activity.activity_name) || []
-
-                                        console.log(selectedNames)
-                                        setPredecessor(selectedNames)
-
-                                        return setSelected(item)
-                                    }
+                                    setNewPredecessor(predecessor);
                                 }}
                                 onFocus={() => setIsFocus(true)}
                                 onBlur={() => setIsFocus(false)}
@@ -167,40 +152,40 @@ export default function AddTaskContentDuration() {
                             // console.log("pessimistic: ", inputEmpty_pessimistic)
                             // console.log("predecessor: ", inputEmpty_predecessor)
 
-                            let hasError = false
+                            let hasError = false;
 
                             if (!activityName.trim()) {
-                                setInputEmpty_activityName(true)
+                                setInputEmpty_activityName(true);
                                 hasError = true
-                            }
+                            };
 
-                            if (predecessor?.length === 0) {
-                                setInputEmpty_predecessor(true)
-                            }
+                            if (newPredecessor?.length === 0) {
+                                setInputEmpty_predecessor(true);
+                            };
 
                             if (!duration.trim()) {
                                 setInputEmpty_duration(true)
                                 hasError = true
-                            }
+                            };
 
                             if (hasError) {
                                 console.log("Some inputs are empty")
                                 return
-                            }
+                            };
 
                             //insert data
                             try {
                                 insert_Activity_duration({
                                     activity_name: activityName,
                                     project_id: parseInt(project_id) || undefined,
-                                    predecessors: predecessor,
+                                    predecessors: newPredecessor,
                                     expected: parseInt(duration),
                                     isDone: false
-                                })
+                                });
 
                             } catch (e) {
                                 console.log(e)
-                            }
+                            };
 
                         }}>
                             <LinearGradient style={{ borderRadius: 10, padding: responsiveSize(10) }} colors={isPending ? ["#3A3F6B", "#3A3F6B"] : ["#63D0FF", "#427CE8", "#235691"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
@@ -214,7 +199,7 @@ export default function AddTaskContentDuration() {
                         <Pressable onPress={() => {
                             // clear input
                             // clear input
-                            setPredecessor([])
+                            setNewPredecessor([])
                             setActivityName("")
                             setDuration("")
 
@@ -234,7 +219,7 @@ export default function AddTaskContentDuration() {
             <Indicator message="Saving" isPending={isPending} />
         </ScrollView>
     )
-}
+};
 
 const styles = StyleSheet.create({
     container: {

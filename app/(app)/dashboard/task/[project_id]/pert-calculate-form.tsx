@@ -11,8 +11,8 @@ import { ScrollView } from "react-native-gesture-handler";
 
 interface PredecessorsTypes {
     label: string
-    value: number
-    name: string
+    id: number
+    activity_name: string
 }
 
 export default function AddTaskContentPertCalculate() {
@@ -24,8 +24,7 @@ export default function AddTaskContentPertCalculate() {
 
     const [isFocus, setIsFocus] = useState(false);
 
-    const [selected, setSelected] = useState<string[]>([]) // selects the id of the predecessor
-    const [predecessor, setPredecessor] = useState<string[]>([]) // sets the final predecessor
+    const [newPredecessor, setNewPredecessor] = useState<string[]>([]) // sets the predecessor id
 
     const [activityName, setActivityName] = useState("")
     const [optimistic, setOptimistic] = useState("")
@@ -44,8 +43,8 @@ export default function AddTaskContentPertCalculate() {
 
     const data = data_?.map((item) => ({
         label: item.label,
-        value: item.id,
-        name: item.activity_name
+        key: item.id,
+        activity_name: item.activity_name
     })) || []
 
     const isPredecessor = data_?.map((item) => {
@@ -54,11 +53,11 @@ export default function AddTaskContentPertCalculate() {
 
     const expected_time = pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic })
 
-    const renderItem = ({ value, name, label }: PredecessorsTypes) => {
+    const renderItem = ({ id, activity_name, label }: PredecessorsTypes) => {
         return (
             <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
                 <Text style={[{ color: "#59accfff" }, styles.item]}>{label}</Text>
-                <Text style={styles.item}>{name}</Text>
+                <Text style={styles.item}>{activity_name}</Text>
             </View>
         );
     };
@@ -107,31 +106,17 @@ export default function AddTaskContentPertCalculate() {
                                 data={data}
                                 placeholderStyle={styles.placeholder}
                                 labelField="label"
-                                valueField="value"
+                                valueField="key"
                                 placeholder={isFocus ? "..." : "Select"}
                                 renderItem={renderItem}
-                                value={selected}
-                                onChange={(item) => {
-                                    if (item === null) {
-                                        console.log(item)
-                                        setIsFocus(false)
-                                        setInputEmpty_predecessor(true)
+                                value={newPredecessor}
+                                onChange={(predecessor) => {
+                                    
+                                    if (predecessor.length > 0) {
+                                        setInputEmpty_predecessor(false);
+                                    };
 
-                                        return setPredecessor([])
-                                    } else {
-                                        setInputEmpty_predecessor(false)
-
-                                        const numericItems = item.map(Number)
-
-                                        const selectedNames = data_
-                                            ?.filter(activity => numericItems.includes(activity.id))  // no String() conversion, both are numbers
-                                            .map(activity => activity.activity_name) || []
-
-                                        console.log(selectedNames)
-                                        setPredecessor(selectedNames)
-
-                                        return setSelected(item)
-                                    }
+                                    setNewPredecessor(predecessor);
                                 }}
                                 onFocus={() => setIsFocus(true)}
                                 onBlur={() => setIsFocus(false)}
@@ -225,7 +210,7 @@ export default function AddTaskContentPertCalculate() {
                                 hasError = true
                             }
 
-                            if (predecessor?.length === 0) {
+                            if (newPredecessor?.length === 0) {
                                 setInputEmpty_predecessor(true)
                             }
 
@@ -257,7 +242,7 @@ export default function AddTaskContentPertCalculate() {
                                     mostLikely: mostLikely,
                                     pessimistic: pessimistic,
                                     project_id: parseInt(project_id) || undefined,
-                                    predecessors: predecessor,
+                                    predecessors: newPredecessor,
                                     expected: pert({ optimistic: optimistic, mostLikely: mostLikely, pessimistic: pessimistic }),
                                     isDone: false
                                 })
@@ -278,7 +263,7 @@ export default function AddTaskContentPertCalculate() {
                         <Pressable onPress={() => {
                             // clear input
                             // clear input
-                            setPredecessor([])
+                            setNewPredecessor([])
                             setActivityName("")
                             setOptimistic("")
                             setMostLikely("")
