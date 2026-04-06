@@ -46,7 +46,7 @@ export default function PresentationContent() {
     // slides or content
     const content = [
         <Fragment>
-            <FlowChart data={cpm} isLoading={isLoading} isRefetchingByUser={isRefetchingByUser} refetchByUser={refetchByUser} small={true} />
+            <FlowChart data={cpm} isLoading={isLoading} isRefetchingByUser={isRefetchingByUser} background="none" refetchByUser={refetchByUser} small={true} />
         </Fragment>,
         <Fragment>
             <Text style={styles.text}>Each node shows the activity duration in days.</Text>

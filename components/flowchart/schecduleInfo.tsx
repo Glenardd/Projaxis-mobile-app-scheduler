@@ -37,15 +37,16 @@ export default function ScheduleInfo({
         },
         activity_name: {
             fontWeight: "600",
-            fontSize: responsiveSize(30),
-            color:"white"
+            fontSize: responsiveSize(20),
+            color: "white"
         },
 
         critical: {
             backgroundColor: "#F24B6F",
-            width: responsiveSize(40),
+            width: responsiveSize(20),
             alignItems: "center",
             borderRadius: 10,
+            minWidth: responsiveSize(40),
         },
 
         nonCritical: {
@@ -53,6 +54,7 @@ export default function ScheduleInfo({
             width: responsiveSize(40),
             alignItems: "center",
             borderRadius: 10,
+            minWidth: responsiveSize(40),
         },
         modalDivider: {
             borderWidth: 1.5,
@@ -84,8 +86,8 @@ export default function ScheduleInfo({
             <Pressable style={styles.modalOverlay} onPress={onClose}>
                 <View style={styles.modalContainer}>
                     <View style={styles.modalCard}>
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center",marginBottom: 10 }}>
-                            <Text style={[styles.activity_name, getDynamicTextStyle(activity_name), {color:"black"}]}>{activity_name}</Text>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                            <Text style={[styles.activity_name, getDynamicTextStyle(activity_name), { color: "black" }]}>{activity_name}</Text>
                             <View style={isCritical}>
                                 <Text style={styles.activity_name}>{label}</Text>
                             </View>

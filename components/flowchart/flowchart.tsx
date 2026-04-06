@@ -33,8 +33,9 @@ export default function FlowChart(
     }
 ) {
 
-  const [nodeData, setNodeData] = useState<ActivityWithTiming>()
+  const [nodeData, setNodeData] = useState<ActivityWithTiming | undefined>()
   const [modalVisible, setModalVisible] = useState(false);
+  const [svgLayout, setSvgLayout] = useState({ width: 0, height: 0 });
 
   const styles = StyleSheet.create({
     floatingButton: {
@@ -65,7 +66,8 @@ export default function FlowChart(
       flexDirection: "row",
       top: 10,
       left: 15,
-      gap: 10
+      gap: 10,
+      zIndex: 2,
     },
     critical: {
       width: Dimensions.get("screen").width * 0.2 - 50,
@@ -81,22 +83,31 @@ export default function FlowChart(
       width: Dimensions.get("screen").width * 0.2 - 50,
       height: Dimensions.get("screen").height * 0.01 - 4,
       backgroundColor: "#3b77c6ff"
+    },
+    container: {
+      flex: 1,
+      backgroundColor: background || "#172038",
+    },
+    svgContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
     }
   })
 
   /* ----------------------- panning and pinching ---------------------------- */
 
-  const { width, height } = Dimensions.get("screen")
+  const { width: screenWidth, height: screenHeight } = Dimensions.get("screen")
 
   const layout = useMemo(() => ({
-    NODE_W: 0.26 * width,
-    NODE_H: 0.06 * height,
-    ROW_GAP: 0.15 * height,
-    COL_GAP: Math.min(0.29 * width, 140),
-    PAD_Y: 0.2 * height,
+    NODE_W: Math.min(0.26 * screenWidth, 300),
+    NODE_H: Math.min(0.06 * screenHeight, 60),
+    ROW_GAP: 0.15 * screenHeight,
+    COL_GAP: Math.min(0.29 * screenWidth, 140),
+    PAD_Y: 0.2 * screenHeight,
     PAD_X: 40,
-    INIT_SCALE: width < 375 ? 0.7 : width < 768 ? 0.8 : 1.0
-  }), [width, height])
+    INIT_SCALE: screenWidth < 375 ? 0.7 : screenWidth < 768 ? 0.8 : 1.0
+  }), [screenWidth, screenHeight])
 
   const { NODE_W, NODE_H, ROW_GAP, COL_GAP, PAD_Y, PAD_X, INIT_SCALE } = layout
 
@@ -134,13 +145,11 @@ export default function FlowChart(
       .onUpdate((e) => {
         'worklet'
 
-        const newScale = Math.min(Math.max(savedScale.value * e.scale, 0.5),)
+        const newScale = Math.min(Math.max(savedScale.value * e.scale, 0.3), 5)
 
-        // 🔥 focal point (where fingers are)
         const focalX = e.focalX
         const focalY = e.focalY
 
-        // adjust position so zoom centers on fingers
         positionX.value =
           focalX - (focalX - offsetX.value) * (newScale / savedScale.value)
 
@@ -182,10 +191,10 @@ export default function FlowChart(
   /* ----------------------- diagrams ---------------------------- */
 
   const positioned = useMemo(() => {
-    return computeLayout(data, width, { NODE_W, NODE_H, ROW_GAP, COL_GAP, PAD_Y, PAD_X })
-  }, [data, width, NODE_W, NODE_H, ROW_GAP, COL_GAP, PAD_Y, PAD_X])
+    if (!data || data.length === 0) return [];
+    return computeLayout(data, screenWidth, { NODE_W, NODE_H, ROW_GAP, COL_GAP, PAD_Y, PAD_X })
+  }, [data, screenWidth, NODE_W, NODE_H, ROW_GAP, COL_GAP, PAD_Y, PAD_X])
 
-  // Map data by label for correct slack lookup
   const dataMap = useMemo(() => new Map(data.map(d => [d.label, d])), [data])
 
   const posMap = useMemo(
@@ -193,41 +202,92 @@ export default function FlowChart(
     [positioned]
   );
 
-  const MAX_CANVAS = 8192  // raised limit
-  // bounding box
-  const bounds = useMemo(() => {
+  // Calculate bounds based on actual node positions (without extra padding for viewBox)
+  const nodeBounds = useMemo(() => {
     if (positioned.length === 0) return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    
     const minX = Math.min(...positioned.map(t => t.x - NODE_W / 2));
     const maxX = Math.max(...positioned.map(t => t.x + NODE_W / 2));
     const minY = Math.min(...positioned.map(t => t.y - NODE_H / 2));
     const maxY = Math.max(...positioned.map(t => t.y + NODE_H / 2));
+    
     return { minX, maxX, minY, maxY };
   }, [positioned, NODE_W, NODE_H]);
 
-  const canvasW = bounds.maxX - bounds.minX + PAD_X * 2;
-  const canvasH = Math.min(bounds.maxY - bounds.minY + PAD_Y * 2, MAX_CANVAS);
+  // Add padding for better visibility
+  const bounds = useMemo(() => {
+    const padding = 50;
+    return {
+      minX: nodeBounds.minX - padding,
+      maxX: nodeBounds.maxX + padding,
+      minY: nodeBounds.minY - padding,
+      maxY: nodeBounds.maxY + padding,
+    };
+  }, [nodeBounds]);
 
-  useEffect(() => {
-    if (!canvasW || !canvasH) return;
+  const canvasWidth = bounds.maxX - bounds.minX;
+  const canvasHeight = bounds.maxY - bounds.minY;
 
+  // Center the view on the nodes
+  const centerView = useCallback(() => {
+    'worklet'
+    if (positioned.length === 0 || svgLayout.width === 0) return;
+    
+    // Calculate the center of the node bounds
     const centerX = (bounds.minX + bounds.maxX) / 2;
     const centerY = (bounds.minY + bounds.maxY) / 2;
+    
+    // Calculate translation to center the content in the viewport
+    // We want the center of the content to align with the center of the SVG container
+    const translateX = svgLayout.width / 2 - centerX * scale.value;
+    const translateY = svgLayout.height / 2 - centerY * scale.value;
+    
+    positionX.value = translateX;
+    positionY.value = translateY;
+    offsetX.value = translateX;
+    offsetY.value = translateY;
+  }, [bounds, svgLayout, positioned.length, scale]);
 
-    const scaledCenterX = centerX * INIT_SCALE;
-    const scaledCenterY = centerY * INIT_SCALE;
-
-    positionX.value = width / 2 - scaledCenterX;
-    positionY.value = height / 2 - scaledCenterY;
-
-    offsetX.value = positionX.value;
-    offsetY.value = positionY.value;
-
+  // Reset view to centered position
+  const resetView = useCallback(() => {
+    'worklet'
+    if (positioned.length === 0 || svgLayout.width === 0) return;
+    
+    const centerX = (bounds.minX + bounds.maxX) / 2;
+    const centerY = (bounds.minY + bounds.maxY) / 2;
+    
+    const translateX = svgLayout.width / 2 - centerX * INIT_SCALE;
+    const translateY = svgLayout.height / 2 - centerY * INIT_SCALE;
+    
+    positionX.value = translateX;
+    positionY.value = translateY;
+    offsetX.value = translateX;
+    offsetY.value = translateY;
+    hasMovedX.value = false;
+    hasMovedY.value = false;
     scale.value = INIT_SCALE;
     savedScale.value = INIT_SCALE;
+  }, [bounds, svgLayout, INIT_SCALE, positioned.length]);
 
-  }, [canvasW, canvasH]);
+  // Initial centering when layout is ready
+  useEffect(() => {
+    if (positioned.length > 0 && svgLayout.width > 0 && svgLayout.height > 0) {
+      const centerX = (bounds.minX + bounds.maxX) / 2;
+      const centerY = (bounds.minY + bounds.maxY) / 2;
+      
+      const translateX = svgLayout.width / 2 - centerX * INIT_SCALE;
+      const translateY = svgLayout.height / 2 - centerY * INIT_SCALE;
+      
+      positionX.value = translateX;
+      positionY.value = translateY;
+      offsetX.value = translateX;
+      offsetY.value = translateY;
+      scale.value = INIT_SCALE;
+      savedScale.value = INIT_SCALE;
+    }
+  }, [bounds, svgLayout, INIT_SCALE, positioned.length]);
 
-  // build edges with correct slack lookup by label
+  // Build edges
   const edges = useMemo(() => {
     const result: React.ReactNode[] = [];
 
@@ -257,58 +317,65 @@ export default function FlowChart(
     });
 
     return result;
-  }, [positioned, data]);
+  }, [positioned, dataMap, posMap, NODE_H]);
 
   const handleNodePress = useCallback((task: ActivityWithTiming) => {
     setNodeData(task)
     setModalVisible(true)
   }, [])
 
-  const handleModalClose = useCallback(() => setModalVisible(v => !v), [])
+  const handleModalClose = useCallback(() => setModalVisible(false), [])
 
-  return isLoading ? <LoadingIndicator /> : (
-    <>
-      <View style={{ flex: 1, backgroundColor: background }}>
-        <View style={{ zIndex: 1 }}>
-          <View style={styles.legendContainer}>
-            <View style={{ flexDirection: "column", justifyContent: "center", gap: 5 }}>
-              <Text style={styles.labelText}>Critical</Text>
-              <Text style={styles.labelText}>Non-critical</Text>
-              <Text style={styles.labelText}>Completed</Text>
-            </View>
-            <View style={{ flexDirection: "column", justifyContent: "space-evenly", alignItems: "center", gap: 20 }}>
-              <View style={styles.critical} />
-              <View style={styles.nonCritical} />
-              <View style={styles.completed} />
-            </View>
+  if (isLoading) {
+    return <LoadingIndicator />
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={{ zIndex: 1, position: 'absolute', top: 0, left: 0, right: 0 }}>
+        <View style={styles.legendContainer}>
+          <View style={{ flexDirection: "column", justifyContent: "center", gap: 5 }}>
+            <Text style={styles.labelText}>Critical</Text>
+            <Text style={styles.labelText}>Non-critical</Text>
+            <Text style={styles.labelText}>Completed</Text>
           </View>
-          <Animated.View style={buttonStyle}>
-            <Pressable
-              style={styles.floatingButton}
-              disabled={isRefetchingByUser}
-              onPress={() => {
-                positionX.value = 0
-                positionY.value = 0
-                offsetX.value = 0
-                offsetY.value = 0
-                hasMovedX.value = false
-                hasMovedY.value = false
-                scale.value = INIT_SCALE
-              }}>
-              <Text style={styles.buttonText}>Reset</Text>
-            </Pressable>
-          </Animated.View>
+          <View style={{ flexDirection: "column", justifyContent: "space-evenly", alignItems: "center", gap: 20 }}>
+            <View style={styles.critical} />
+            <View style={styles.nonCritical} />
+            <View style={styles.completed} />
+          </View>
         </View>
+        <Animated.View style={buttonStyle}>
+          <Pressable
+            style={styles.floatingButton}
+            disabled={isRefetchingByUser}
+            onPress={() => {
+              resetView()
+            }}>
+            <Text style={styles.buttonText}>Reset</Text>
+          </Pressable>
+        </Animated.View>
+      </View>
 
-        <GestureDetector gesture={composedGesture}>
-          <Animated.View style={[animatedStyle, { alignItems: "center", justifyContent: "center" }]}>
-            <Svg width={canvasW} height={canvasH}>
-
+      <GestureDetector gesture={composedGesture}>
+        <View 
+          style={styles.svgContainer}
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            setSvgLayout({ width, height });
+          }}
+        >
+          <Animated.View style={animatedStyle}>
+            <Svg 
+              width={canvasWidth} 
+              height={canvasHeight}
+              viewBox={`${bounds.minX} ${bounds.minY} ${canvasWidth} ${canvasHeight}`}
+            >
               {/* Edges */}
               {edges}
-
+              
               {/* Nodes */}
-              {positioned.map((task, i) => (
+              {positioned.map((task) => (
                 <Node
                   onPress={handleNodePress}
                   key={task.label}
@@ -320,13 +387,14 @@ export default function FlowChart(
               ))}
             </Svg>
           </Animated.View>
-        </GestureDetector>
-        <ScheduleInfo
-          isVisible={modalVisible}
-          onClose={handleModalClose}
-          nodeData={nodeData}
-        />
-      </View>
-    </>
+        </View>
+      </GestureDetector>
+      
+      <ScheduleInfo
+        isVisible={modalVisible}
+        onClose={handleModalClose}
+        nodeData={nodeData}
+      />
+    </View>
   )
 }
