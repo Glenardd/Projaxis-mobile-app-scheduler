@@ -20,7 +20,7 @@ The application's interface was initially designed in Figma before implementatio
 
 https://www.figma.com/design/o12MWnwtLv5Nc76bAEQIKT/Projaxis--Mobile-app-?node-id=0-1&m=dev&t=HbTVmcr8mKEMAxd7-1
 
-### Design Preview
+### App Preview
 
 <p align="center">
   <img src="https://github.com/Glenardd/Projaxis-mobile-app-scheduler/blob/main/assets/images/projaxis_app.png" alt="Projaxis Design Preview" width="800"/>
