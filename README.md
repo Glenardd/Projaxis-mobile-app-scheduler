@@ -1,50 +1,71 @@
-# Welcome to your Expo app 👋
+# Projaxis - Mobile App Scheduler 📅
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Projaxis is a mobile scheduling application designed to help students and professionals organize their daily activities, manage tasks, and keep track of important events through an intuitive and modern interface.
 
-## Get started
+The application aims to provide users with a convenient way to plan schedules, monitor upcoming deadlines, and improve productivity while maintaining a clean and user-friendly experience.
 
-1. Install dependencies
+## ✨ Features
 
-   ```bash
-   npm install
-   ```
+* 📆 Create and manage schedules
+* ✅ Organize tasks and activities
+* 🔔 Receive reminders for upcoming events
+* 📱 Responsive and user-friendly mobile interface
+* 🎨 Modern design inspired by the initial Figma prototype
 
-2. Start the app
+## 🎨 Initial Design Prototype
 
-   ```bash
-   npx expo start
-   ```
+The application's interface was initially designed in Figma before implementation.
 
-In the output, you'll find options to open the app in a
+**Figma Design**
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+https://www.figma.com/design/o12MWnwtLv5Nc76bAEQIKT/Projaxis--Mobile-app-?node-id=0-1&m=dev&t=HbTVmcr8mKEMAxd7-1
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Design Preview
 
-## Get a fresh project
+<p align="center">
+  <img src="https://placehold.co/900x500/png?text=Insert+Projaxis+UI+Screenshots+Here" alt="Projaxis Design Preview" width="800"/>
+</p>
 
-When you're ready, run:
+> Replace the placeholder image above with exported screenshots from Figma or screenshots taken from the running application.
+
+## 🛠️ Tech Stack
+
+* React Native
+* Expo
+* TypeScript
+* Expo Router
+
+## 🚀 Getting Started
+
+### Install Dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Run the Application
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+You can then open the application using:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+* Android Emulator
+* iOS Simulator
+* Expo Go
+* Development Build
 
-## Join the community
+## 📂 Project Structure
 
-Join our community of developers creating universal apps.
+```text
+app/            # Application screens and routes
+assets/         # Images, fonts, and static resources
+components/     # Reusable UI components
+constants/      # Shared constants
+hooks/          # Custom React hooks
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 👥 Developers
+
+Developed as part of the **Projaxis Mobile Scheduler** project.
