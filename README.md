@@ -23,7 +23,7 @@ https://www.figma.com/design/o12MWnwtLv5Nc76bAEQIKT/Projaxis--Mobile-app-?node-i
 ### Design Preview
 
 <p align="center">
-  <img src="https://placehold.co/900x500/png?text=Insert+Projaxis+UI+Screenshots+Here" alt="Projaxis Design Preview" width="800"/>
+  <img src="https://github.com/Glenardd/Projaxis-mobile-app-scheduler/blob/main/assets/images/projaxis_app.png" alt="Projaxis Design Preview" width="800"/>
 </p>
 
 > Replace the placeholder image above with exported screenshots from Figma or screenshots taken from the running application.
